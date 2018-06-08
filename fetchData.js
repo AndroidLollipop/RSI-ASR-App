@@ -8,8 +8,8 @@ var getAsrText = (audio) => {
 }
 storeData = {
   "items": [
-    {"iuid": 10, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 12},
-    {"iuid": 15, "istock": 60, "itemName": "Bubble Gum", "shelfLocation": "shelf1", "friendlyLocation": "Banned Foods section", "shelfRow": 5, "shelfColumn": 12}
+    {"iuid": 10, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 12, "tags": ["Food", "Canned", "Tuna"]},
+    {"iuid": 15, "istock": 60, "itemName": "Bubble Gum", "shelfLocation": "shelf1", "friendlyLocation": "Banned Foods section", "shelfRow": 5, "shelfColumn": 12, "tags": ["Food", "Banned", "Bubble", "Gum"]}
   ],
   //we are going to use ANTI-CLOCKWISE winding order for polygons
   //(x, y), POSITIVE x is RIGHT, POSITIVE y is UP
