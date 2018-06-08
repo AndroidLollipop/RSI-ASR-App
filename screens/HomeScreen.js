@@ -7,21 +7,89 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Button,
 } from 'react-native';
-import { WebBrowser } from 'expo';
+import { WebBrowser, Audio, Permissions, FileSystem } from 'expo';
 
 import { MonoText } from '../components/StyledText';
 
+var fetchData = require("../fetchData");
+
 export default class HomeScreen extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {isRecording: false};
+  }
   static navigationOptions = {
     header: null,
   };
 
+  async startAudioRecording(){
+    alert("asdf")
+    await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+    await Audio.setIsEnabledAsync(true);
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+    });
+    this.recording = new Audio.Recording();
+    try {
+      await this.recording.prepareToRecordAsync(Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY);
+      await this.recording.startAsync();
+    } catch (error) {
+      alert(error)
+      alert("welp, declined")
+    }
+    this.setState({
+      isRecording: true
+    })
+  }
+
+  async stopAudioRecording(){
+    await this.recording.stopAndUnloadAsync();
+    const info = await FileSystem.getInfoAsync(this.recording.getURI())
+  }
+
+  recordingIndicator(){
+    if (this.state.isRecording){
+      return <Text>Recording</Text>
+    }
+    else{
+      return <Text>Not Recording</Text>
+    }
+  }
+
+  recordingButton(){
+    if (!this.state.isRecording){
+      return <Button
+        onPress={this.startAudioRecording.bind(this)}
+        title="Find Item"
+        color="#841584"
+      />
+    }
+    else{
+      return <Button
+        onPress={this.stopAudioRecording.bind(this)}
+        title="Stop Recording"
+        color="#841584"
+      />
+    }
+  }
+
   render() {
+    let indicator = this.recordingIndicator()
+    let recbutton = this.recordingButton()
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
           <View style={styles.welcomeContainer}>
+            <View>
+              {recbutton}
+              {indicator}
+            </View>
             <Image
               source={
                 __DEV__
