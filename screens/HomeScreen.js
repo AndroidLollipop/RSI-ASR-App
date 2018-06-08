@@ -18,7 +18,7 @@ var fetchData = require("../fetchData");
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {isRecording: false};
+    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false};
   }
   static navigationOptions = {
     header: null,
@@ -57,7 +57,25 @@ export default class HomeScreen extends React.Component {
     await this.recording.stopAndUnloadAsync();
     const info = await FileSystem.getInfoAsync(this.recording.getURI())
     const { sound, status } = await this.recording.createNewLoadedSound()
+    this.sound = sound;
+    this.setState({
+      soundLoaded: true
+    })
     alert(fetchData.getAsrText(sound))
+  }
+
+  startPlaying(){
+    this.sound.playAsync();
+    this.setState({
+      audioPlaying: true
+    })
+  }
+
+  stopPlaying(){
+    this.sound.stopAsync();
+    this.setState({
+      audioPlaying: false
+    })
   }
 
   recordingIndicator(){
@@ -86,9 +104,29 @@ export default class HomeScreen extends React.Component {
     }
   }
 
+  playbackButton(){
+    if (this.state.soundLoaded){
+      if (this.state.audioPlaying){
+        return <Button
+        onPress={this.stopPlaying.bind(this)}
+        title="Stop Playing"
+        color="#841584"
+      />
+      }
+      else{
+        return <Button
+        onPress={this.startPlaying.bind(this)}
+        title="Start Playing"
+        color="#841584"
+      />
+      }
+    }
+  }
+
   render() {
     let indicator = this.recordingIndicator()
     let recbutton = this.recordingButton()
+    let playback = this.playbackButton()
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -96,6 +134,7 @@ export default class HomeScreen extends React.Component {
             <View>
               {recbutton}
               {indicator}
+              {playback}
             </View>
             <Image
               source={
