@@ -48,9 +48,16 @@ export default class HomeScreen extends React.Component {
     })
   }
 
+//isRecording -> true at end boundary of startAudioRecording and -> false and start boundary of stopAudioRecording
+
   async stopAudioRecording(){
+    this.setState({
+      isRecording: false
+    })
     await this.recording.stopAndUnloadAsync();
     const info = await FileSystem.getInfoAsync(this.recording.getURI())
+    const { sound, status } = await this.recording.createNewLoadedSound()
+    alert(fetchData.getAsrText(sound))
   }
 
   recordingIndicator(){
