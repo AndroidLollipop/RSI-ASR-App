@@ -124,6 +124,7 @@ export default class HomeScreen extends React.Component {
   }
 
   render() {
+    const { navigate } = this.props.navigation;
     let indicator = this.recordingIndicator()
     let recbutton = this.recordingButton()
     let playback = this.playbackButton()
@@ -135,6 +136,12 @@ export default class HomeScreen extends React.Component {
               {recbutton}
               {indicator}
               {playback}
+              <Button
+                title="Navigation Test"
+                onPress={() =>
+                  navigate('Result', {'name': 'Whenever is a mantra I live for'})
+                }
+              />
             </View>
             <Image
               source={
