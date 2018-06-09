@@ -43,12 +43,17 @@ var getInventory = () => {
     }, 2000);
   });
 }
+storeDataCache = false
 var getStoreData = () => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve(storeData);
-    }, 2000);
-  });
+  if (!storeDataCache){
+    return new Promise(resolve => {
+      setTimeout(() => {
+        storeDataCache = storeData
+        resolve(storeData);
+      }, 2000);
+    });
+  }
+  return storeDataCache
 }
 var exports = module.exports = {
   dataInvalidated : true
