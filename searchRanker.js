@@ -1,4 +1,4 @@
-var fetchData = require("fetchData");
+var fetchData = require("./fetchData");
 var computeTfIdfs = (tagcollection, tf_, idf) => {
   //we have to iterate through all tags anyway to compute any single tfidf, no point using lazy computation
   //just get it done once and never do it again until the next inventory update
@@ -20,7 +20,7 @@ var computeTfIdfs = (tagcollection, tf_, idf) => {
   }
   iks = Object.keys(idf)
   for (var i = 0; i < iks.length; i++){
-    if (!idf[iks[i]]){
+    if (idf[iks[i]]){
       idf[iks[i]] = Math.log(tagcollection.length/idf[iks[i]])
     }
     else{
@@ -33,18 +33,26 @@ var makeRanker = (data) => {
   var idf = {}
   var tf_ = []
   var data = data["items"]
-  return (term) => {
+  return (terms) => {
+    var terms = terms.toLowerCase().split(" ")
     if (!run){
       computeTfIdfs(data, tf_, idf)
       run = 1
     }
     var ret = []
-    for (i = 0; i < data.length; i++){
-      if (tf_[i][term]){
-        ret.push([tf_[i][term] * idf[term], tf_[i][term], i])
-      }
-      else{
-        ret.push([0, 0, i])
+    for (var i = 0; i < data.length; i++){
+      ret.push([0, 0, i])
+    }
+    for (var i = 0; i < terms.length; i++){
+      var term = terms[i]
+      console.log(term)
+      for (var j = 0; j < data.length; j++){
+        if (tf_[j][term]){
+          console.log(tf_[j][term])
+          console.log(idf[term])
+          ret[j][0] += tf_[j][term] * idf[term]
+          ret[j][1] += tf_[j][term]
+        }
       }
     }
     return ret

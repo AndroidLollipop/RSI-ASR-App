@@ -15,10 +15,14 @@ import { MonoText } from '../components/StyledText';
 
 var fetchData = require("../fetchData");
 
+var searchRanker = require("../searchRanker")
+
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false};
+    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: false};
+    this.searchRanker = null;
+    this.storeData = null;
   }
   static navigationOptions = {
     header: null,
@@ -50,6 +54,10 @@ export default class HomeScreen extends React.Component {
 
 //isRecording -> true at end boundary of startAudioRecording and -> false and start boundary of stopAudioRecording
 
+  displaySearchResults(){
+    
+  }
+
   async stopAudioRecording(){
     this.setState({
       isRecording: false
@@ -61,7 +69,12 @@ export default class HomeScreen extends React.Component {
     this.setState({
       soundLoaded: true
     })
-    alert(await fetchData.getAsrText(sound))
+    var asr = fetchData.getAsrText(sound)
+    var ran = this.searchRanker
+    var [asr, ran] = await Promise.all([asr, ran]);
+    //why this weird deconstructor promise syntax?
+    //believe it or not, this is basically the only way to get 2 promises to resolve simultaneously in a single asynchronous function!
+    alert(ran(asr))
   }
 
   async startPlaying(){
@@ -78,10 +91,20 @@ export default class HomeScreen extends React.Component {
     })
   }
 
+  getRanker(){
+    return searchRanker.getRanker()
+  }
+
   stopPlaying(){
     this.sound.stopAsync();
     this.setState({
       audioPlaying: false
+    })
+  }
+
+  swapScreen(){
+    this.setState({
+      nextScreen: !this.state.nextScreen
     })
   }
 
@@ -130,11 +153,33 @@ export default class HomeScreen extends React.Component {
     }
   }
 
+  resultButton(){
+    if (this.state.nextScreen){
+      return <Button
+        onPress={this.swapScreen.bind(this)}
+        title="Display results on this screen"
+        color="#841584"
+      />
+    }
+    else{
+      return <Button
+        onPress={this.swapScreen.bind(this)}
+        title="Display results on next screen"
+        color="#841584"
+      />
+    }
+  }
+
   render() {
     const { navigate } = this.props.navigation;
     let indicator = this.recordingIndicator()
     let recbutton = this.recordingButton()
     let playback = this.playbackButton()
+    let rebutton = this.resultButton()
+    this.searchRanker = this.getRanker()
+    this.storeData = fetchData.getStoreData()
+    //YES, WE WILL EVENTUALLY IMPLEMENT CACHING
+    //NOT NOW THO FOR TESTING PURPOSES
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -143,6 +188,7 @@ export default class HomeScreen extends React.Component {
               {recbutton}
               {indicator}
               {playback}
+              {rebutton}
               <Button
                 title="Navigation Test"
                 onPress={() =>
