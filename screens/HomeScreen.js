@@ -19,14 +19,33 @@ import {
   TableView
 } from 'react-native-tableview-simple';
 
+import Svg,{
+    Circle,
+    Ellipse,
+    G,
+    LinearGradient,
+    RadialGradient,
+    Line,
+    Path,
+    Polygon,
+    Polyline,
+    Rect,
+    Symbol,
+    Use,
+    Defs,
+    Stop
+} from 'react-native-svg';
+
 var fetchData = require("../fetchData");
 
 var searchRanker = require("../searchRanker")
 
+var helperFunctions = require("../helperFunctions")
+
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false};
+    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false};
     this.searchRanker = null;
     this.storeData = null;
     this.asrText = null;
@@ -36,6 +55,10 @@ export default class HomeScreen extends React.Component {
   static navigationOptions = {
     header: null,
   };
+
+  componentDidMount(){
+    this.generateMap.bind(this)()
+  }
 
   async startAudioRecording(){
     alert("asdf")
@@ -74,6 +97,27 @@ export default class HomeScreen extends React.Component {
         {this.resultCells}
       </Section>
     </TableView>
+  }
+
+  makePolygon(x, i){
+    console.log(x.map(x => x.map(x => x*500).join(",")).join(" "))
+    return (
+      <Polygon
+        key={i}
+        points={x.map(x => x.map(x => x*500).join(",")).join(" ")}
+        fill="lime"
+        stroke="purple"
+        strokeWidth="1"
+      />
+    )
+  }
+
+  async generateMap(){
+    this.storeData = await this.storeData
+    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon)
+    this.setState({
+      polygonMap: pma
+    })
   }
 
   displaySearchResults(){
@@ -221,6 +265,7 @@ export default class HomeScreen extends React.Component {
     let tedicator = this.textIndicator()
     this.searchRanker = this.getRanker()
     this.storeData = fetchData.getStoreData()
+    let map = this.state.polygonMap
     //YES, WE WILL EVENTUALLY IMPLEMENT CACHING
     //NOT NOW THO FOR TESTING PURPOSES
     return (
@@ -241,44 +286,19 @@ export default class HomeScreen extends React.Component {
                 }
               />
               {this.state.nextScreen ? false : this.state.cells}
-            </View>
+              <View style={styles.welcomeContainer}/>
+                <Text>{"Map, map, I'm a map"}</Text>
+              </View>
+              <Svg
+                height="1000"
+                width="1000"
+              >
+              {map}
+              </Svg>
         </ScrollView>
       </View>
     );
   }
-
-  _maybeRenderDevelopmentModeWarning() {
-    if (__DEV__) {
-      const learnMoreButton = (
-        <Text onPress={this._handleLearnMorePress} style={styles.helpLinkText}>
-          Learn more
-        </Text>
-      );
-
-      return (
-        <Text style={styles.developmentModeText}>
-          Development mode is enabled, your app will be slower but you can use useful development
-          tools. {learnMoreButton}
-        </Text>
-      );
-    } else {
-      return (
-        <Text style={styles.developmentModeText}>
-          You are not in development mode, your app will run at full speed.
-        </Text>
-      );
-    }
-  }
-
-  _handleLearnMorePress = () => {
-    WebBrowser.openBrowserAsync('https://docs.expo.io/versions/latest/guides/development-mode');
-  };
-
-  _handleHelpPress = () => {
-    WebBrowser.openBrowserAsync(
-      'https://docs.expo.io/versions/latest/guides/up-and-running.html#can-t-see-your-changes'
-    );
-  };
 }
 
 const styles = StyleSheet.create({
