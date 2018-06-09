@@ -61,10 +61,17 @@ export default class HomeScreen extends React.Component {
     this.setState({
       soundLoaded: true
     })
-    alert(fetchData.getAsrText(sound))
+    alert(await fetchData.getAsrText(sound))
   }
 
-  startPlaying(){
+  async startPlaying(){
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+    })
     this.sound.playAsync();
     this.setState({
       audioPlaying: true
