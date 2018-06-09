@@ -55,6 +55,7 @@ var makeRanker = (data) => {
         }
       }
     }
+    console.log(ret.sort())
     ret = ret.sort().map(x => x[3])
     return ret
   }
