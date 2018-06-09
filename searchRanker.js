@@ -41,7 +41,7 @@ var makeRanker = (data) => {
     }
     var ret = []
     for (var i = 0; i < data.length; i++){
-      ret.push([0, 0, -i, data[i]])
+      ret.push([0, 0, i, data[i]])
     }
     for (var i = 0; i < terms.length; i++){
       var term = terms[i]
@@ -55,8 +55,13 @@ var makeRanker = (data) => {
         }
       }
     }
-    console.log(ret.sort())
-    ret = ret.sort().map(x => x[3])
+    ret = ret.sort((a, b) => {
+      var i = 0;
+      while(a[i] == b[i]){
+        i++;
+      }
+      return a[i]-b[i]
+    }).map(x => x[3])
     return ret
   }
 }

@@ -1,6 +1,5 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { ExpoLinksView } from '@expo/samples';
 
 export default class ResultsScreen extends React.Component {
   static navigationOptions = ({ navigation }) => ({
@@ -15,7 +14,6 @@ export default class ResultsScreen extends React.Component {
     return (
       <ScrollView style={styles.container}>
         {this.props.navigation.state.params.resultcells}
-        <ExpoLinksView />
       </ScrollView>
     );
   }

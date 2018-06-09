@@ -64,7 +64,7 @@ export default class HomeScreen extends React.Component {
 //isRecording -> true at end boundary of startAudioRecording and -> false and start boundary of stopAudioRecording
 
   renderItem(x, i){
-    return <Cell key={i} title={x.itemName + " " + x.friendlyLocation}/>
+    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation}/>
   }
 
   makeTableView(){
@@ -78,15 +78,10 @@ export default class HomeScreen extends React.Component {
 
   displaySearchResults(){
     var cells = this.makeTableView.bind(this)()
-    if (!this.state.nextScreen){
-      this.setState({
-        cells: cells
-      })
-    }
-    else{
-      this.setState({
-        cells: false
-      })
+    this.setState({
+      cells: cells
+    })
+    if (this.state.nextScreen){
       this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells})
     }
   }
@@ -231,59 +226,23 @@ export default class HomeScreen extends React.Component {
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.welcomeContainer}>
             <View>
               {recbutton}
-              {indicator}
-              {tedicator}
+              <View style={styles.welcomeContainer}>
+                {indicator}
+                {tedicator}
+              </View>
               {playback}
               {rebutton}
-              {this.state.cells}
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for'})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells})
                 }
               />
+              {this.state.nextScreen ? false : this.state.cells}
             </View>
-            <Image
-              source={
-                __DEV__
-                  ? require('../assets/images/robot-dev.png')
-                  : require('../assets/images/robot-prod.png')
-              }
-              style={styles.welcomeImage}
-            />
-          </View>
-
-          <View style={styles.getStartedContainer}>
-            {this._maybeRenderDevelopmentModeWarning()}
-
-            <Text style={styles.getStartedText}>Get started by opening</Text>
-
-            <View style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-              <MonoText style={styles.codeHighlightText}>screens/HomeScreen.js</MonoText>
-            </View>
-
-            <Text style={styles.getStartedText}>
-              Change this text and your app will automatically reload.
-            </Text>
-          </View>
-
-          <View style={styles.helpContainer}>
-            <TouchableOpacity onPress={this._handleHelpPress} style={styles.helpLink}>
-              <Text style={styles.helpLinkText}>Help, it didn’t automatically reload!</Text>
-            </TouchableOpacity>
-          </View>
         </ScrollView>
-
-        <View style={styles.tabBarInfoContainer}>
-          <Text style={styles.tabBarInfoText}>This is a tab bar. You can edit it in:</Text>
-
-          <View style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-            <MonoText style={styles.codeHighlightText}>navigation/MainTabNavigator.js</MonoText>
-          </View>
-        </View>
       </View>
     );
   }
