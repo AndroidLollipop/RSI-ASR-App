@@ -1,17 +1,60 @@
 var fetchData = require("fetchData");
-var getIdf = (data) => {
-
-}
-var getTf_ = (data) => {
-
-}
-var makeRanker = (data) => {
-
-  return (request) => {
-
+var computeTfIdfs = (tagcollection, tf_, idf) => {
+  //we have to iterate through all tags anyway to compute any single tfidf, no point using lazy computation
+  //just get it done once and never do it again until the next inventory update
+  //if we are brave and adventurous we can try using delta updates and delta'ing the tfidf cache
+  for (var i = 0; i < tagcollection.length; i++){
+    var tags = tagcollection[i]["tags"];
+    var adda = {}
+    for (var j = 0; j < tags.length; j++){
+      if (!adda[tags[j]]){
+        if (!idf[tags[j]]){
+          idf[tags[j]] = 0
+        }
+        idf[tags[j]]++
+        adda[tags[j]] = 0
+      }
+      adda[tags[j]] += 1/tags.length
+    }
+    tf_.push(adda)
+  }
+  iks = Object.keys(idf)
+  for (var i = 0; i < iks.length; i++){
+    if (!idf[iks[i]]){
+      idf[iks[i]] = Math.log(tagcollection.length/idf[iks[i]])
+    }
+    else{
+      idf[iks[i]] = 0
+    }
   }
 }
-var ranker = async () => {
+var makeRanker = (data) => {
+  var run = 0
+  var idf = {}
+  var tf_ = []
+  var data = data["items"]
+  return (term) => {
+    if (!run){
+      computeTfIdfs(data, tf_, idf)
+      run = 1
+    }
+    var ret = []
+    for (i = 0; i < data.length; i++){
+      if (tf_[i][term]){
+        ret.push([tf_[i][term] * idf[term], tf_[i][term], i])
+      }
+      else{
+        ret.push([0, 0, i])
+      }
+    }
+    return ret
+  }
+}
+var getRanker = async () => {
   storeData = await fetchData.getStoreData();
-
+  return makeRanker(storeData)
+}
+module.exports = {
+  makeRanker: makeRanker,
+  getRanker: getRanker
 }
