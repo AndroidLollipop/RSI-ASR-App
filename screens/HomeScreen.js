@@ -13,6 +13,12 @@ import { WebBrowser, Audio, Permissions, FileSystem } from 'expo';
 
 import { MonoText } from '../components/StyledText';
 
+import {
+  Cell,
+  Section,
+  TableView
+} from 'react-native-tableview-simple';
+
 var fetchData = require("../fetchData");
 
 var searchRanker = require("../searchRanker")
@@ -20,9 +26,12 @@ var searchRanker = require("../searchRanker")
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: false};
+    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false};
     this.searchRanker = null;
     this.storeData = null;
+    this.asrText = null;
+    this.resultCells = null;
+    this.rankingResults = null;
   }
   static navigationOptions = {
     header: null,
@@ -54,8 +63,32 @@ export default class HomeScreen extends React.Component {
 
 //isRecording -> true at end boundary of startAudioRecording and -> false and start boundary of stopAudioRecording
 
+  renderItem(x, i){
+    return <Cell key={i} title={x.itemName + " " + x.friendlyLocation}/>
+  }
+
+  makeTableView(){
+    this.resultCells = this.rankingResults.map(this.renderItem)
+    return <TableView>
+      <Section>
+        {this.resultCells}
+      </Section>
+    </TableView>
+  }
+
   displaySearchResults(){
-    
+    var cells = this.makeTableView.bind(this)()
+    if (!this.state.nextScreen){
+      this.setState({
+        cells: cells
+      })
+    }
+    else{
+      this.setState({
+        cells: false
+      })
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells})
+    }
   }
 
   async stopAudioRecording(){
@@ -71,10 +104,17 @@ export default class HomeScreen extends React.Component {
     })
     var asr = fetchData.getAsrText(sound)
     var ran = this.searchRanker
-    var [asr, ran] = await Promise.all([asr, ran]);
+    var [asr, ran, storeData] = await Promise.all([fetchData.getAsrText(sound), this.searchRanker, this.storeData]);
+    this.asrText = asr
+    this.searchRanker = ran
+    this.storeData = storeData
     //why this weird deconstructor promise syntax?
     //believe it or not, this is basically the only way to get 2 promises to resolve simultaneously in a single asynchronous function!
-    alert(ran(asr))
+    this.setState({
+      asrLoaded: true
+    })
+    this.rankingResults = ran(asr)
+    this.displaySearchResults.bind(this)()
   }
 
   async startPlaying(){
@@ -170,12 +210,20 @@ export default class HomeScreen extends React.Component {
     }
   }
 
+  textIndicator(){
+    if (this.state.asrLoaded){
+      return <Text>{this.asrText}</Text>
+    }
+  }
+
   render() {
     const { navigate } = this.props.navigation;
+    this.navigateto = navigate
     let indicator = this.recordingIndicator()
     let recbutton = this.recordingButton()
     let playback = this.playbackButton()
     let rebutton = this.resultButton()
+    let tedicator = this.textIndicator()
     this.searchRanker = this.getRanker()
     this.storeData = fetchData.getStoreData()
     //YES, WE WILL EVENTUALLY IMPLEMENT CACHING
@@ -187,8 +235,10 @@ export default class HomeScreen extends React.Component {
             <View>
               {recbutton}
               {indicator}
+              {tedicator}
               {playback}
               {rebutton}
+              {this.state.cells}
               <Button
                 title="Navigation Test"
                 onPress={() =>

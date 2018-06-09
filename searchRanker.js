@@ -41,7 +41,7 @@ var makeRanker = (data) => {
     }
     var ret = []
     for (var i = 0; i < data.length; i++){
-      ret.push([0, 0, i])
+      ret.push([0, 0, -i, data[i]])
     }
     for (var i = 0; i < terms.length; i++){
       var term = terms[i]
@@ -50,11 +50,12 @@ var makeRanker = (data) => {
         if (tf_[j][term]){
           console.log(tf_[j][term])
           console.log(idf[term])
-          ret[j][0] += tf_[j][term] * idf[term]
-          ret[j][1] += tf_[j][term]
+          ret[j][0] -= tf_[j][term] * idf[term]
+          ret[j][1] -= tf_[j][term]
         }
       }
     }
+    ret = ret.sort().map(x => x[3])
     return ret
   }
 }

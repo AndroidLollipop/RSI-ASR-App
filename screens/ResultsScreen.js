@@ -14,8 +14,7 @@ export default class ResultsScreen extends React.Component {
   render() {
     return (
       <ScrollView style={styles.container}>
-        {/* Go ahead and delete ExpoLinksView and replace it with your
-           * content, we just wanted to provide you with some helpful links */}
+        {this.props.navigation.state.params.resultcells}
         <ExpoLinksView />
       </ScrollView>
     );
