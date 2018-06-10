@@ -53,7 +53,7 @@ export default class HomeScreen extends React.Component {
     this.rankingResults = null;
   }
   static navigationOptions = {
-    header: null,
+    title: "Home",
   };
 
   componentDidMount(){

@@ -46,7 +46,7 @@ var getInventory = () => {
 storeDataCache = false
 var getStoreData = () => {
   if (!storeDataCache){
-    return new Promise(resolve => {
+    storeDataCache = new Promise(resolve => {
       setTimeout(() => {
         storeDataCache = storeData
         resolve(storeData);
