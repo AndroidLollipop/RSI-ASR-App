@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
   Button,
+  Dimensions
 } from 'react-native';
 import { WebBrowser, Audio, Permissions, FileSystem } from 'expo';
 
@@ -100,11 +101,11 @@ export default class HomeScreen extends React.Component {
   }
 
   makePolygon(x, i){
-    console.log(x.map(x => x.map(x => x*500).join(",")).join(" "))
+    console.log(x.map(x => x.map(x => x*this.width).join(",")).join(" "))
     return (
       <Polygon
         key={i}
-        points={x.map(x => x.map(x => x*500).join(",")).join(" ")}
+        points={x.map(x => x.map(x => x*this.width).join(",")).join(" ")}
         fill="lime"
         stroke="purple"
         strokeWidth="1"
@@ -114,10 +115,21 @@ export default class HomeScreen extends React.Component {
 
   async generateMap(){
     this.storeData = await this.storeData
-    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon)
+    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
     this.setState({
       polygonMap: pma
     })
+  }
+
+  async secondScreenMapGenerator(){
+    this.storeData = await this.storeData
+    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
+    return <Svg
+      height={this.width}
+      width={this.width}
+    >
+    {pma}
+    </Svg>
   }
 
   displaySearchResults(){
@@ -126,7 +138,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this)})
     }
   }
 
@@ -266,6 +278,9 @@ export default class HomeScreen extends React.Component {
     this.searchRanker = this.getRanker()
     this.storeData = fetchData.getStoreData()
     let map = this.state.polygonMap
+    let {height, width} = Dimensions.get("window")
+    this.height = height
+    this.width = width
     //YES, WE WILL EVENTUALLY IMPLEMENT CACHING
     //NOT NOW THO FOR TESTING PURPOSES
     return (
@@ -282,19 +297,20 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this)})
                 }
               />
               {this.state.nextScreen ? false : this.state.cells}
-              <View style={styles.welcomeContainer}/>
+              <View style={styles.welcomeContainer}>
                 <Text>{"Map, map, I'm a map"}</Text>
               </View>
               <Svg
-                height="1000"
-                width="1000"
+                height={this.width}
+                width={this.width}
               >
               {map}
               </Svg>
+            </View>
         </ScrollView>
       </View>
     );

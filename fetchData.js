@@ -48,7 +48,6 @@ var getStoreData = () => {
   if (!storeDataCache){
     storeDataCache = new Promise(resolve => {
       setTimeout(() => {
-        storeDataCache = storeData
         resolve(storeData);
       }, 2000);
     });

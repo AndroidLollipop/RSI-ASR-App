@@ -10,10 +10,24 @@ export default class ResultsScreen extends React.Component {
         },
     });
 
+  constructor(props) {
+    super(props);
+    this.state = {myMap: false}
+  }
+
+  async componentDidMount(){
+    let map = await this.props.navigation.state.params.mapGenerator()
+    this.setState({
+      myMap: map
+    })
+    console.log("i'm alive")
+  }
+
   render() {
     return (
       <ScrollView style={styles.container}>
         {this.props.navigation.state.params.resultcells}
+        {this.state.myMap}
       </ScrollView>
     );
   }
