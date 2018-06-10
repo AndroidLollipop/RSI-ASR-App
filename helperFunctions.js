@@ -1,4 +1,4 @@
-var reschedule = async (time=17) => {
+var reschedule = (time=17) => {
   return new Promise((resolve) => setTimeout(() => resolve(), time))
 }
 var conditionalReschedule = async (condition, time=17) => {
