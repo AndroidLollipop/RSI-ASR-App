@@ -19,6 +19,7 @@ $RECYCLE.BIN/
 *.lnk
 
 node_modules/
+.DS_Store
 
 # =========================
 # Operating System Files

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableHighlight,
   View,
   Button,
   Dimensions
@@ -148,7 +149,6 @@ export default class HomeScreen extends React.Component {
     })
     await this.recording.stopAndUnloadAsync();
     const info = await FileSystem.getInfoAsync(this.recording.getURI())
-    console.log((await Expo.FileSystem.downloadAsync(this.recording.getURI(), FileSystem.documentDirectory + "rec.caf"))["uri"])
     const { sound, status } = await this.recording.createNewLoadedSound()
     this.sound = sound;
     this.setState({
@@ -204,6 +204,27 @@ export default class HomeScreen extends React.Component {
     }
     else{
       return <Text>Not Recording</Text>
+    }
+  }
+
+  imageRecordingButton(){
+    if (!this.state.isRecording){
+      return <TouchableHighlight
+        onPress={this.startAudioRecording.bind(this)}>
+        <Image
+          style={{width: 250, height: 250}}
+          source={require('../not-recording.png')}
+          />
+      </TouchableHighlight>
+    }
+    else{
+      return <TouchableHighlight
+        onPress={this.stopAudioRecording.bind(this)}>
+        <Image
+          style={{width: 250, height: 250}}
+          source={require('../recording.png')}
+          />
+      </TouchableHighlight>
     }
   }
 
@@ -278,6 +299,7 @@ export default class HomeScreen extends React.Component {
     this.storeData = fetchData.getStoreData()
     let map = this.state.polygonMap
     let {height, width} = Dimensions.get("window")
+    let irecbutto = this.imageRecordingButton()
     this.height = height
     this.width = width
     //YES, WE WILL EVENTUALLY IMPLEMENT CACHING
@@ -292,6 +314,9 @@ export default class HomeScreen extends React.Component {
                 {tedicator}
               </View>
               {playback}
+              <View style={styles.welcomeContainer}>
+                {irecbutto}
+              </View>
               {rebutton}
               <Button
                 title="Navigation Test"
