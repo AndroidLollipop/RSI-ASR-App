@@ -57,8 +57,12 @@ var getStoreData = () => {
   return storeDataCache
 }
 var exports = module.exports = {
-  dataInvalidated : true
+  dataInvalidated : true,
+  Images: {},
+  StateData: {}
 }
 exports.getAsrText = getAsrText;
 exports.getInventory = getInventory;
 exports.getStoreData = getStoreData;
+exports.Images.notRecording = require("./not-recording.png");
+exports.Images.recording = require("./recording.png")

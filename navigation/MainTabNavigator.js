@@ -8,10 +8,12 @@ import HomeScreen from '../screens/HomeScreen';
 import LinksScreen from '../screens/LinksScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ResultsScreen from '../screens/ResultsScreen';
+import AccuracyCheck from '../screens/AccuracyCheck'
 
 const HomeStack = createStackNavigator({
   Home: HomeScreen,
-  Result: ResultsScreen
+  Result: ResultsScreen,
+  Accuracy: AccuracyCheck
 });
 
 HomeStack.navigationOptions = {

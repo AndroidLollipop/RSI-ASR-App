@@ -210,19 +210,21 @@ export default class HomeScreen extends React.Component {
   imageRecordingButton(){
     if (!this.state.isRecording){
       return <TouchableHighlight
-        onPress={this.startAudioRecording.bind(this)}>
+        onPress={this.startAudioRecording.bind(this)}
+        style={{height: 250, width: 250, borderRadius: 125}}>
         <Image
           style={{width: 250, height: 250}}
-          source={require('../not-recording.png')}
+          source={fetchData.Images.notRecording}
           />
       </TouchableHighlight>
     }
     else{
       return <TouchableHighlight
-        onPress={this.stopAudioRecording.bind(this)}>
+        onPress={this.stopAudioRecording.bind(this)}
+        style={{height: 250, width: 250, borderRadius: 125}}>
         <Image
           style={{width: 250, height: 250}}
-          source={require('../recording.png')}
+          source={fetchData.Images.recording}
           />
       </TouchableHighlight>
     }
@@ -322,6 +324,12 @@ export default class HomeScreen extends React.Component {
                 title="Navigation Test"
                 onPress={() =>
                   navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this)})
+                }
+              />
+              <Button
+                title="Check Accuracy"
+                onPress={() =>
+                  navigate('Accuracy', {'name': 'Check Accuracy', 'asrText': this.asrText})
                 }
               />
               {this.state.nextScreen ? false : this.state.cells}
