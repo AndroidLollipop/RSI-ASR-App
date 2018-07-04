@@ -329,7 +329,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Check Accuracy"
                 onPress={() =>
-                  navigate('Accuracy', {'name': 'Check Accuracy', 'asrText': this.asrText})
+                  navigate('Accuracy', {'name': 'Check Accuracy', 'asrTextGetter': () => this.asrText})
                 }
               />
               {this.state.nextScreen ? false : this.state.cells}

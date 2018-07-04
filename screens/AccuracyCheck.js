@@ -14,13 +14,17 @@ export default class AccuracyCheck extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {text: "", accuracyText:"0%"}
+    if (fetchData.StateData.savedText){
+      this.state = {text: fetchData.StateData.savedText, accuracyText: fetchData.StateData.savedAccuracy}
+    }
+    else{
+      this.state = {text: "", accuracyText: "0%"}
+    }
     this.latestScheduled = 0
   }
 
   componentDidMount() {
     if (fetchData.StateData.savedText){
-      this.setState({text: fetchData.StateData.savedText})
       this.updateAccuracy.bind(this)(fetchData.StateData.savedText)
     }
   }
@@ -35,7 +39,7 @@ export default class AccuracyCheck extends React.Component {
   scheduleAccuracy(latestScheduled){
     setTimeout(() => {
       if (this.latestScheduled == latestScheduled){
-        var text = this.props.navigation.state.params.asrText ? this.props.navigation.state.params.asrText.split(" ").join("") : ""
+        var text = this.asrText ? this.asrText.split(" ").join("") : ""
         var supposed = this.state.text.split(" ").join("")
         console.log(text)
         console.log(supposed)
@@ -56,14 +60,12 @@ export default class AccuracyCheck extends React.Component {
           }
           previous = current
         }
+        var res = "0%"
         if (text.length && supposed.length){
-          console.log((100*(Math.max(text.length, supposed.length)-current[text.length])/Math.max(text.length, supposed.length)).toFixed(0)+"%")
-          this.setState({accuracyText: (100*(Math.max(text.length, supposed.length)-current[text.length])/Math.max(text.length, supposed.length)).toFixed(0)+"%"})
+          res = (100*(Math.max(text.length, supposed.length)-current[text.length])/Math.max(text.length, supposed.length)).toFixed(0)+"%"
         }
-        else{
-          console.log(text.length)
-          this.setState({accuracyText: "0%"})
-        }
+        this.setState({accuracyText: res})
+        fetchData.StateData.savedAccuracy = res
       }
     }, 33)
   }
@@ -72,12 +74,13 @@ export default class AccuracyCheck extends React.Component {
     let {height, width} = Dimensions.get("window")
     this.width = width
     this.height = height
+    this.asrText = this.props.navigation.state.params.asrTextGetter()
     //fetch this per render, because window size can change when the user switches from landscape to portrait
     return (
       <ScrollView style={styles.container}>
         <View style={{alignItems: 'center'}}>
-          {this.props.navigation.state.params.asrText ? <Text>{"ASR text:"}</Text> : null}
-          <Text>{this.props.navigation.state.params.asrText ? this.props.navigation.state.params.asrText : "You haven't made a request! Come back here after making one"}</Text>
+          {this.asrText ? <Text>{"ASR text:"}</Text> : null}
+          <Text>{this.asrText ? this.asrText : "You haven't made a request! Come back here after making one"}</Text>
           <TextInput
             editable={true}
             multiline={true}
