@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Button } from 'react-native';
 
 export default class ResultsScreen extends React.Component {
   static navigationOptions = ({ navigation }) => ({
@@ -24,8 +24,15 @@ export default class ResultsScreen extends React.Component {
   }
 
   render() {
+    const { navigate } = this.props.navigation
     return (
       <ScrollView style={styles.container}>
+        <Button
+          title="Check Accuracy"
+          onPress={() =>
+            navigate('Accuracy', {'name': 'Check Accuracy', 'asrTextGetter': this.props.navigation.state.params.asrTextGetter})
+          }
+        />
         {this.props.navigation.state.params.resultcells}
         {this.state.myMap}
       </ScrollView>

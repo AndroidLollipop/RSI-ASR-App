@@ -63,7 +63,7 @@ export default class HomeScreen extends React.Component {
   }
 
   async startAudioRecording(){
-    alert("asdf")
+    alert("Recording started")
     await Permissions.askAsync(Permissions.AUDIO_RECORDING);
     await Audio.setIsEnabledAsync(true);
     await Audio.setAudioModeAsync({
@@ -139,7 +139,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this)})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
     }
   }
 
@@ -296,7 +296,7 @@ export default class HomeScreen extends React.Component {
   }
 
   render() {
-    const { navigate } = this.props.navigation;
+    const { navigate } = this.props.navigation
     this.navigateto = navigate
     let indicator = this.recordingIndicator()
     let recbutton = this.recordingButton()
@@ -329,7 +329,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this)})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
                 }
               />
               <Button
