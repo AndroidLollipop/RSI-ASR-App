@@ -59,7 +59,8 @@ var getStoreData = () => {
 var exports = module.exports = {
   dataInvalidated : true,
   Images: {},
-  StateData: {}
+  StateData: {},
+  AsrEventListeners: []
 }
 exports.getAsrText = getAsrText;
 exports.getInventory = getInventory;

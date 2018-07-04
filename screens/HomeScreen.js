@@ -156,6 +156,12 @@ export default class HomeScreen extends React.Component {
     })
     var [asr, ran, storeData] = await Promise.all([fetchData.getAsrText(sound), this.searchRanker, this.storeData]);
     this.asrText = asr
+    for (var i = 0; i < fetchData.AsrEventListeners.length; i++){
+      var f = fetchData.AsrEventListeners[i]
+      if (f){
+        f()
+      }
+    }
     this.searchRanker = ran
     this.storeData = storeData
     //why this weird deconstructor promise syntax?

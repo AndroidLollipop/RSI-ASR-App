@@ -27,6 +27,12 @@ export default class AccuracyCheck extends React.Component {
     if (fetchData.StateData.savedText){
       this.updateAccuracy.bind(this)(fetchData.StateData.savedText)
     }
+    this.listenerIndex = fetchData.AsrEventListeners.push(() => {this.setState({}); this.updateAccuracy(this.state.text)})-1
+    console.log(fetchData.AsrEventListeners)
+  }
+
+  componentWillUnmount() {
+    fetchData.AsrEventListeners[this.listenerIndex] = undefined
   }
 
   updateAccuracy(text) {
