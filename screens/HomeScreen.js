@@ -148,13 +148,14 @@ export default class HomeScreen extends React.Component {
       isRecording: false
     })
     await this.recording.stopAndUnloadAsync();
-    const info = await FileSystem.getInfoAsync(this.recording.getURI())
+    const recuri = this.recording.getURI()
+    const info = await FileSystem.getInfoAsync(recuri)
     const { sound, status } = await this.recording.createNewLoadedSound()
     this.sound = sound;
     this.setState({
       soundLoaded: true
     })
-    var [asr, ran, storeData] = await Promise.all([fetchData.getAsrText(sound), this.searchRanker, this.storeData]);
+    var [asr, ran, storeData] = await Promise.all([fetchData.getAsrText(recuri), this.searchRanker, this.storeData]);
     this.asrText = asr
     for (var i = 0; i < fetchData.AsrEventListeners.length; i++){
       var f = fetchData.AsrEventListeners[i]

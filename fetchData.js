@@ -1,5 +1,61 @@
 //fake server, wire this up to the server later
-var getAsrText = (audio) => {
+var getAsrText = async (uri) => {
+  /*const rippedfromimda = function() {
+    console.log("sendAsr: chunks length: %d", blob.size);
+    var wavContent = "";
+    var reader = new window.FileReader();
+    reader.readAsDataURL(blob);
+    reader.onloadend = function () {
+        wavContent = reader.result;
+  wavContent = wavContent.replace('data:audio/ogg; codecs=opus;base64,','');
+  //console.log("wavContent:" + wavContent);
+    
+        var myObj = { "Wavfile": "FromBrowser.ogg",
+                "EncodedSpeech": wavContent}; 
+        $.ajax({type: "POST",
+            url: "speech/english/imda1.php",
+      contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(myObj),
+      dataType: "json",
+            success : function(data) { 
+               // here is the code that will run on client side after running imda.php on server
+   $.each(data, function(index, element) {
+      console.log(index + ":" + element); 
+      if (index == "decodeText") {
+    $(".result").html("ASR: " + element + "<br>"); 
+      } else if (index == "timeElapse") {
+    $(".result").append("Time elapsed: " + element.toFixed(2) + " sec<p>"); 
+      }
+   });
+            }
+         });
+     }
+  }
+  console.log("Uploading " + uri);
+  let apiUrl = 'http://192.168.1.31/speech/english/imda1.php';
+  let uriParts = uri.split('.');
+  let fileType = uriParts[uriParts.length - 1];
+
+  let formData = new FormData();
+  formData.append('file', {
+    uri,
+    name: `recording.${fileType}`,
+    type: `audio/x-${fileType}`,
+  });
+
+  let options = {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'multipart/form-data',
+    },
+  };
+
+  console.log("POSTing " + uri + " to " + apiUrl);
+  console.log(await fetch(apiUrl, options))*/
+  fetch(uri).then(res => console.log(res.blob()))
+  //awwwwwww yisssss
   return new Promise(resolve => {
     setTimeout(() => {
       resolve("where is the bubble gum")
