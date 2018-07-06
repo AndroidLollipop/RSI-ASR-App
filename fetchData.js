@@ -4,38 +4,6 @@ var getAsrText = async (uri) => {
   const myPromise = new Promise(resolve => {
     resolveMyPromise = resolve
   })
-  const rippedfromimda = function() {
-    console.log("hello")
-    console.log("sendAsr: chunks length: %d", blob.size);
-    var wavContent = "";
-    var reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onloadend = function () {
-        wavContent = reader.result;
-  wavContent = wavContent.replace('data:audio/ogg; codecs=opus;base64,','');
-  //console.log("wavContent:" + wavContent);
-    
-        var myObj = { "Wavfile": "FromBrowser.ogg",
-                "EncodedSpeech": wavContent}; 
-        ajax({type: "POST",
-            url: "http://192.168.1.31/speech/english/imda1.php",
-      contentType: "application/json; charset=utf-8",
-            data: JSON.stringify(myObj),
-      dataType: "json",
-            success : function(data) { 
-               // here is the code that will run on client side after running imda.php on server
-   $.each(data, function(index, element) {
-      console.log(index + ":" + element); 
-      if (index == "decodeText") {
-    $(".result").html("ASR: " + element + "<br>"); 
-      } else if (index == "timeElapse") {
-    $(".result").append("Time elapsed: " + element.toFixed(2) + " sec<p>"); 
-      }
-   });
-            }
-         });
-     }
-  }
   const res = await fetch(uri)
   const blob = await res.blob()
   const url = "http://192.168.1.31/speech/english/imda1.php"
@@ -53,23 +21,19 @@ var getAsrText = async (uri) => {
       headers: myHeaders,
       body: JSON.stringify(myObj)
     }
-    console.log("before")
-    console.log(myInit)
     try {
       var ime = await fetch(url, myInit)
       var res = await ime.json()
+      resolveMyPromise(res.decodeText.split("\n").join(""))
     }
     catch(e){
       alert(e)
+      alert("Server not detected. Returning default response")
+      resolveMyPromise("where is the bubble gum")
     }
-    console.log("after")
     console.log(res)
   }
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve("where is the bubble gum")
-    }, 2000);
-  });
+  return myPromise
 }
 storeData = {
   "items": [
