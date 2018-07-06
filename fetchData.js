@@ -51,11 +51,13 @@ var getAsrText = async (uri) => {
     }
     var myInit = { method: "POST",
       headers: myHeaders,
-      body: JSON.stringify(wavContent)
+      body: JSON.stringify(myObj)
     }
     console.log("before")
+    console.log(myInit)
     try {
-      var res = await fetch(url, myInit)
+      var ime = await fetch(url, myInit)
+      var res = await ime.json()
     }
     catch(e){
       alert(e)
