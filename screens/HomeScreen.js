@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   TouchableHighlight,
   View,
@@ -47,7 +48,7 @@ var helperFunctions = require("../helperFunctions")
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false};
+    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
     this.searchRanker = null;
     this.storeData = null;
     this.asrText = null;
@@ -296,6 +297,13 @@ export default class HomeScreen extends React.Component {
     }
   }
 
+  updateServerURL(text){
+    this.setState({
+      serverURL: text
+    })
+    fetchData.StateData.ServerURL = text
+  }
+
   render() {
     const { navigate } = this.props.navigation
     this.navigateto = navigate
@@ -317,6 +325,18 @@ export default class HomeScreen extends React.Component {
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
             <View>
+              <View style={styles.welcomeContainer}>
+                <Text>{"Server URL"}</Text>
+                <TextInput
+                  editable={true}
+                  multiline={true}
+                  numberOfLines={4}
+                  onChangeText={(text) => this.updateServerURL.bind(this)(text)}
+                  style={{height: 50, width: this.width, backgroundColor: '#dddddd'}}
+                  value={this.state.serverURL}
+                  placeholder={"Server URL"}
+                />
+              </View>
               {recbutton}
               <View style={styles.welcomeContainer}>
                 {indicator}

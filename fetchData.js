@@ -6,7 +6,7 @@ var getAsrText = async (uri) => {
   })
   const res = await fetch(uri)
   const blob = await res.blob()
-  const url = "http://192.168.1.31/speech/english/imda1.php"
+  const url = exports.StateData.ServerURL
   var myHeaders = new Headers();
   myHeaders.append('Content-Type', 'application/json; charset=utf-8');
   var reader = new FileReader()
@@ -88,7 +88,7 @@ var getStoreData = () => {
 var exports = module.exports = {
   dataInvalidated : true,
   Images: {},
-  StateData: {},
+  StateData: {"ServerURL": "http://192.168.1.31/speech/english/imda1.php"},
   AsrEventListeners: []
 }
 exports.getAsrText = getAsrText;
