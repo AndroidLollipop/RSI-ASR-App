@@ -1,9 +1,88 @@
 //fake server, wire this up to the server later
 var getAsrText = async (uri) => {
-  /*const rippedfromimda = function() {
+  const ajax = function (option) { // $.ajax(...) without jquery.
+    if (typeof(option.url) == "undefined") {
+        try {
+            option.url = location.href;
+        } catch(e) {
+            var ajaxLocation;
+            ajaxLocation = document.createElement("a");
+            ajaxLocation.href = "";
+            option.url = ajaxLocation.href;
+        }
+    }
+    if (typeof(option.type) == "undefined") {
+        option.type = "GET";
+    }
+    if (typeof(option.data) == "undefined") {
+        option.data = null;
+    } else {
+        console.log(option.data.length)
+        /*var data = "";
+        for (var x in option.data) {
+            if (data != "") {
+                data += "&";
+            }
+            data += encodeURIComponent(x)+"="+encodeURIComponent(option.data[x]);
+        };
+        option.data = data;*/
+    }
+    if (typeof(option.statusCode) == "undefined") { // 4
+        option.statusCode = {};
+    }
+    if (typeof(option.beforeSend) == "undefined") { // 1
+        option.beforeSend = function () {};
+    }
+    if (typeof(option.success) == "undefined") { // 4 et sans erreur
+        option.success = function () {};
+    }
+    if (typeof(option.error) == "undefined") { // 4 et avec erreur
+        option.error = function () {};
+    }
+    if (typeof(option.complete) == "undefined") { // 4
+        option.complete = function () {};
+    }
+    typeof(option.statusCode["404"]);
+
+    var xhr = null;
+
+    if (window.XMLHttpRequest || window.ActiveXObject) {
+        if (window.ActiveXObject) { try { xhr = new ActiveXObject("Msxml2.XMLHTTP"); } catch(e) { xhr = new ActiveXObject("Microsoft.XMLHTTP"); } }
+        else { xhr = new XMLHttpRequest(); }
+    } else { alert("Votre navigateur ne supporte pas l'objet XMLHTTPRequest..."); return null; }
+
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 1) {
+            option.beforeSend();
+        }
+        if (xhr.readyState == 4) {
+            option.complete(xhr, xhr.status);
+            if (xhr.status == 200 || xhr.status == 0) {
+                option.success(xhr.responseText);
+            } else {
+                option.error(xhr.status);
+                if (typeof(option.statusCode[xhr.status]) != "undefined") {
+                    option.statusCode[xhr.status]();
+                }
+            }
+        }
+    };
+
+    if (option.type == "POST") {
+        xhr.open(option.type, option.url, true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+        xhr.send(option.data);
+    } else {
+        xhr.open(option.type, option.url+option.data, true);
+        xhr.send(null);
+    }
+
+}
+  const rippedfromimda = function() {
+    console.log("hello")
     console.log("sendAsr: chunks length: %d", blob.size);
     var wavContent = "";
-    var reader = new window.FileReader();
+    var reader = new FileReader();
     reader.readAsDataURL(blob);
     reader.onloadend = function () {
         wavContent = reader.result;
@@ -12,8 +91,8 @@ var getAsrText = async (uri) => {
     
         var myObj = { "Wavfile": "FromBrowser.ogg",
                 "EncodedSpeech": wavContent}; 
-        $.ajax({type: "POST",
-            url: "speech/english/imda1.php",
+        ajax({type: "POST",
+            url: "http://192.168.1.31/speech/english/imda1.php",
       contentType: "application/json; charset=utf-8",
             data: JSON.stringify(myObj),
       dataType: "json",
@@ -31,30 +110,10 @@ var getAsrText = async (uri) => {
          });
      }
   }
-  console.log("Uploading " + uri);
-  let apiUrl = 'http://192.168.1.31/speech/english/imda1.php';
-  let uriParts = uri.split('.');
-  let fileType = uriParts[uriParts.length - 1];
-
-  let formData = new FormData();
-  formData.append('file', {
-    uri,
-    name: `recording.${fileType}`,
-    type: `audio/x-${fileType}`,
-  });
-
-  let options = {
-    method: 'POST',
-    body: formData,
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'multipart/form-data',
-    },
-  };
-
-  console.log("POSTing " + uri + " to " + apiUrl);
-  console.log(await fetch(apiUrl, options))*/
-  fetch(uri).then(res => console.log(res.blob()))
+  const res = await fetch(uri)
+  const blob = await res.blob()
+  console.log(blob)
+  rippedfromimda()
   //awwwwwww yisssss
   return new Promise(resolve => {
     setTimeout(() => {
