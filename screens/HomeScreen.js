@@ -87,9 +87,13 @@ export default class HomeScreen extends React.Component {
       await this.recording.startAsync();
     } catch (error) {
       alert(error)
-      alert("welp, declined")
     }
     this.sstopRecordingEnable = true
+    let [myResolve, myPromise] = helperFunctions.awaitreschedule()
+    this.setState({
+      isRecording: true
+    }, () => setTimeout(() => myResolve(), 1))
+    await myPromise
     this.radialAnimation = Animated.loop(
       Animated.timing(
         this.state.animatedOpacity,
@@ -102,9 +106,6 @@ export default class HomeScreen extends React.Component {
       )
     )
     this.radialAnimation.start()
-    setTimeout(() => this.setState({
-      isRecording: true
-    }), 1)
   }
 
   renderItem(x, i){
