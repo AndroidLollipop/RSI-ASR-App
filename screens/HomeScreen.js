@@ -84,9 +84,6 @@ export default class HomeScreen extends React.Component {
       alert(error)
       alert("welp, declined")
     }
-    this.setState({
-      isRecording: true
-    })
     this.radialAnimation = Animated.loop(
       Animated.timing(
         this.state.animatedOpacity,
@@ -99,6 +96,9 @@ export default class HomeScreen extends React.Component {
       )
     )
     this.radialAnimation.start()
+    this.setState({
+      isRecording: true
+    })
   }
 
 //isRecording -> true at end boundary of startAudioRecording and -> false and start boundary of stopAudioRecording
