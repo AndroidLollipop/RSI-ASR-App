@@ -177,10 +177,11 @@ export default class HomeScreen extends React.Component {
     //wait for rerender to complete before proceeding to prevent stuttering
     await myPromise
     await this.recording.stopAndUnloadAsync();
+    const rec = this.recording
     this.startRecordingEnable = true
-    const recuri = this.recording.getURI()
+    const recuri = rec.getURI()
     const info = await FileSystem.getInfoAsync(recuri)
-    const { sound, status } = await this.recording.createNewLoadedSound()
+    const { sound, status } = await rec.createNewLoadedSound()
     this.sound = sound;
     this.setState({
       soundLoaded: true
