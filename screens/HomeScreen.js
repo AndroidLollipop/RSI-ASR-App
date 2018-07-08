@@ -88,7 +88,6 @@ export default class HomeScreen extends React.Component {
     } catch (error) {
       alert(error)
     }
-    this.sstopRecordingEnable = true
     let [myResolve, myPromise] = helperFunctions.awaitreschedule()
     this.setState({
       isRecording: true
@@ -106,6 +105,7 @@ export default class HomeScreen extends React.Component {
       )
     )
     this.radialAnimation.start()
+    this.sstopRecordingEnable = true
   }
 
   renderItem(x, i){
