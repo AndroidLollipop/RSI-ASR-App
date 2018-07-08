@@ -102,12 +102,10 @@ export default class HomeScreen extends React.Component {
       )
     )
     this.radialAnimation.start()
-    this.setState({
+    setTimeout(() => this.setState({
       isRecording: true
-    })
+    }), 1)
   }
-
-//isRecording -> true at end boundary of startAudioRecording and -> false and start boundary of stopAudioRecording
 
   renderItem(x, i){
     return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation}/>
@@ -171,9 +169,12 @@ export default class HomeScreen extends React.Component {
     this.sstopRecordingEnable = false
     this.radialAnimation.stop()
     setTimeout(() => this.setState({ animatedOpacity: new Animated.Value(1) }), 0)
+    let [myResolve, myPromise] = helperFunctions.awaitreschedule()
     this.setState({
       isRecording: false
-    })
+    }, () => setTimeout(() => myResolve(), 1))
+    //wait for rerender to complete before proceeding to prevent stuttering
+    await myPromise
     await this.recording.stopAndUnloadAsync();
     this.startRecordingEnable = true
     const recuri = this.recording.getURI()
