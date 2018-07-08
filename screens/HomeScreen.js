@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableHighlight,
+  Animated,
   View,
   Button,
   Dimensions
