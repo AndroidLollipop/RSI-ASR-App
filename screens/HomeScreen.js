@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   TouchableHighlight,
   Animated,
+  Easing,
   View,
   Button,
   Dimensions
@@ -49,7 +50,7 @@ var helperFunctions = require("../helperFunctions")
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
+    this.state = {animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
     this.searchRanker = null;
     this.storeData = null;
     this.asrText = null;
@@ -86,6 +87,18 @@ export default class HomeScreen extends React.Component {
     this.setState({
       isRecording: true
     })
+    this.radialAnimation = Animated.loop(
+      Animated.timing(
+        this.state.animatedOpacity,
+        {
+          toValue: 1.2,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true
+        }
+      )
+    )
+    this.radialAnimation.start()
   }
 
 //isRecording -> true at end boundary of startAudioRecording and -> false and start boundary of stopAudioRecording
@@ -146,6 +159,8 @@ export default class HomeScreen extends React.Component {
   }
 
   async stopAudioRecording(){
+    this.radialAnimation.stop()
+    setTimeout(() => this.setState({ animatedOpacity: new Animated.Value(1) }), 0)
     this.setState({
       isRecording: false
     })
@@ -231,10 +246,16 @@ export default class HomeScreen extends React.Component {
       return <TouchableHighlight
         onPress={this.stopAudioRecording.bind(this)}
         style={{height: 250, width: 250, borderRadius: 125}}>
-        <Image
-          style={{width: 250, height: 250}}
-          source={fetchData.Images.recording}
-          />
+        <View>
+          <Animated.Image
+            style={{opacity: Animated.add(6, Animated.multiply(this.state.animatedOpacity, -5)), width: 250, height: 250, position: "absolute", left: 0, top: 0, transform: [{scale: this.state.animatedOpacity}]}}
+            source={fetchData.Images.recording}
+            />
+          <Image
+            style={{width: 250, height: 250, position: "absolute", left: 0, top: 0}}
+            source={fetchData.Images.recording}
+            />
+          </View>
       </TouchableHighlight>
     }
   }
@@ -308,6 +329,7 @@ export default class HomeScreen extends React.Component {
   render() {
     const { navigate } = this.props.navigation
     this.navigateto = navigate
+    let animatedOpacity = this.state.animatedOpacity
     let indicator = this.recordingIndicator()
     let recbutton = this.recordingButton()
     let playback = this.playbackButton()
