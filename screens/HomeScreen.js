@@ -56,6 +56,8 @@ export default class HomeScreen extends React.Component {
     this.asrText = null;
     this.resultCells = null;
     this.rankingResults = null;
+    this.startRecordingEnable = true;
+    this.sstopRecordingEnable = false;
   }
   static navigationOptions = {
     title: "Home",
@@ -66,7 +68,10 @@ export default class HomeScreen extends React.Component {
   }
 
   async startAudioRecording(){
-    alert("Recording started")
+    if (!this.startRecordingEnable){
+      return
+    }
+    this.startRecordingEnable = false
     await Permissions.askAsync(Permissions.AUDIO_RECORDING);
     await Audio.setIsEnabledAsync(true);
     await Audio.setAudioModeAsync({
@@ -84,6 +89,7 @@ export default class HomeScreen extends React.Component {
       alert(error)
       alert("welp, declined")
     }
+    this.sstopRecordingEnable = true
     this.radialAnimation = Animated.loop(
       Animated.timing(
         this.state.animatedOpacity,
@@ -159,12 +165,17 @@ export default class HomeScreen extends React.Component {
   }
 
   async stopAudioRecording(){
+    if (!this.sstopRecordingEnable){
+      return
+    }
+    this.sstopRecordingEnable = false
     this.radialAnimation.stop()
     setTimeout(() => this.setState({ animatedOpacity: new Animated.Value(1) }), 0)
     this.setState({
       isRecording: false
     })
     await this.recording.stopAndUnloadAsync();
+    this.startRecordingEnable = true
     const recuri = this.recording.getURI()
     const info = await FileSystem.getInfoAsync(recuri)
     const { sound, status } = await this.recording.createNewLoadedSound()

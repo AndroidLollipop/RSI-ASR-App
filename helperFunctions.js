@@ -1,6 +1,11 @@
 var reschedule = (time=17) => {
   return new Promise((resolve) => setTimeout(() => resolve(), time))
 }
+var awaitreschedule = () => {
+  var myResolve;
+  var myPromise = new Promise((resolve) => myResolve = resolve)
+  return [myResolve, myPromise]
+}
 var conditionalReschedule = async (condition, time=17) => {
   while(condition()){
     await reschedule(time)
@@ -36,5 +41,5 @@ var exports = module.exports = {
   }
 }
 exports.reschedule = reschedule;
-exports.conditionalReschedule = conditionalReschedule;
+exports.awaitreschedule = awaitreschedule;
 exports.flattenList = flattenList;
