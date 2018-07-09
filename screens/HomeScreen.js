@@ -88,11 +88,9 @@ export default class HomeScreen extends React.Component {
     } catch (error) {
       alert(error)
     }
-    let [myResolve, myPromise] = helperFunctions.awaitreschedule()
     this.setState({
       isRecording: true
-    }, () => setTimeout(() => myResolve(), 1))
-    await myPromise
+    })
     this.radialAnimation = Animated.loop(
       Animated.timing(
         this.state.animatedOpacity,
@@ -170,12 +168,11 @@ export default class HomeScreen extends React.Component {
     this.sstopRecordingEnable = false
     this.radialAnimation.stop()
     setTimeout(() => this.setState({ animatedOpacity: new Animated.Value(1) }), 0)
-    let [myResolve, myPromise] = helperFunctions.awaitreschedule()
+    //immediately setState-ing doesn't work as Animation.stop() is asynchronous and doesn't provide a completion callback or promise
     this.setState({
       isRecording: false
-    }, () => setTimeout(() => myResolve(), 1))
+    })
     //wait for rerender to complete before proceeding to prevent stuttering
-    await myPromise
     await this.recording.stopAndUnloadAsync();
     const rec = this.recording
     this.startRecordingEnable = true
@@ -381,7 +378,13 @@ export default class HomeScreen extends React.Component {
               </View>
               {playback}
               <View style={styles.welcomeContainer}>
-                {irecbutto}
+                <View>
+                  <Image
+                    style={{width: 250, height: 250, position: "absolute", left: 0, top: 0}}
+                    source={fetchData.Images.notRecording}
+                    />
+                  {irecbutto}
+                </View>
               </View>
               {rebutton}
               <Button
