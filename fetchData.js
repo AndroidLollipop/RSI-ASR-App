@@ -64,7 +64,7 @@ storeData = {
   }
 }
 inventoryList = {
-  "available": [10, 15]
+  "available": [10, 15, 16, 17, 20, 18]
 }
 //returns iuids of items in stock
 var getInventory = () => {
