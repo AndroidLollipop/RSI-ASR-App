@@ -1,5 +1,5 @@
-//fake server, wire this up to the server later
-var getAsrText = async (uri) => {
+var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
+  //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
   var resolveMyPromise
   const myPromise = new Promise(resolve => {
     resolveMyPromise = resolve

@@ -63,18 +63,18 @@ export default class HomeScreen extends React.Component {
     title: "Home",
   };
 
-  componentDidMount(){
+  componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
     this.generateMap.bind(this)()
   }
 
-  async startAudioRecording(){
-    if (!this.startRecordingEnable){
+  async startAudioRecording(){ //start animations and start audio recording
+    if (!this.startRecordingEnable){ //this ensures that only 1 execution context can enter the following critical section at any time
       return
     }
     this.startRecordingEnable = false
-    await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+    await Permissions.askAsync(Permissions.AUDIO_RECORDING); //get user permission
     await Audio.setIsEnabledAsync(true);
-    await Audio.setAudioModeAsync({
+    await Audio.setAudioModeAsync({ //audio recording boilerplate straight from documentation
       allowsRecordingIOS: true,
       interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
       playsInSilentModeIOS: true,
@@ -88,10 +88,13 @@ export default class HomeScreen extends React.Component {
     } catch (error) {
       alert(error)
     }
-    this.setState({
+    this.setState({ //update button state
+      //we don't want to mislead the user by starting the animation and swapping the buttons before the recording actually begins
+      //the alternative would be to warm up a recording in the background and to truncate it to the appropriate length after the user ends a recording
+      //but the complexity of implementing that is not worth the 0.5 seconds it saves
       isRecording: true
     })
-    this.radialAnimation = Animated.loop(
+    this.radialAnimation = Animated.loop( //start the ripple
       Animated.timing(
         this.state.animatedOpacity,
         {
@@ -103,14 +106,14 @@ export default class HomeScreen extends React.Component {
       )
     )
     this.radialAnimation.start()
-    this.sstopRecordingEnable = true
+    this.sstopRecordingEnable = true //allow an execution context to enter the stop recording critical section
   }
 
-  renderItem(x, i){
+  renderItem(x, i){ //render each cell
     return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation}/>
   }
 
-  makeTableView(){
+  makeTableView(){ //create result table
     this.resultCells = this.rankingResults.map(this.renderItem)
     return <TableView>
       <Section>
@@ -119,8 +122,8 @@ export default class HomeScreen extends React.Component {
     </TableView>
   }
 
-  makePolygon(x, i){
-    console.log(x.map(x => x.map(x => x*this.width).join(",")).join(" "))
+  makePolygon(x, i){ //render each shelf
+    console.log(x.map(x => x.map(x => x*this.width).join(",")).join(" ")) //making sure the vertices are formatted properly
     return (
       <Polygon
         key={i}
@@ -132,15 +135,15 @@ export default class HomeScreen extends React.Component {
     )
   }
 
-  async generateMap(){
+  async generateMap(){ //render result map
     this.storeData = await this.storeData
-    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
+    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this)) //formatting shelf data and mapping each shelf to a polygon
     this.setState({
       polygonMap: pma
     })
   }
 
-  async secondScreenMapGenerator(){
+  async secondScreenMapGenerator(){ //map for resultsscreen
     this.storeData = await this.storeData
     let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
     return <Svg
@@ -151,7 +154,7 @@ export default class HomeScreen extends React.Component {
     </Svg>
   }
 
-  displaySearchResults(){
+  displaySearchResults(){ //called by stopAudioRecording
     var cells = this.makeTableView.bind(this)()
     this.setState({
       cells: cells
@@ -162,7 +165,7 @@ export default class HomeScreen extends React.Component {
   }
 
   async stopAudioRecording(){
-    if (!this.sstopRecordingEnable){
+    if (!this.sstopRecordingEnable){ //this ensures that only 1 execution context can enter the following critical section at any time
       return
     }
     this.sstopRecordingEnable = false
@@ -175,7 +178,7 @@ export default class HomeScreen extends React.Component {
     //wait for rerender to complete before proceeding to prevent stuttering
     await this.recording.stopAndUnloadAsync();
     const rec = this.recording
-    this.startRecordingEnable = true
+    this.startRecordingEnable = true //allow an execution context to enter the start audio recording critical section
     const recuri = rec.getURI()
     const info = await FileSystem.getInfoAsync(recuri)
     const { sound, status } = await rec.createNewLoadedSound()
@@ -185,7 +188,7 @@ export default class HomeScreen extends React.Component {
     })
     var [asr, ran, storeData] = await Promise.all([fetchData.getAsrText(recuri), this.searchRanker, this.storeData]);
     this.asrText = asr
-    for (var i = 0; i < fetchData.AsrEventListeners.length; i++){
+    for (var i = 0; i < fetchData.AsrEventListeners.length; i++){ //updates accuracycheck screen
       var f = fetchData.AsrEventListeners[i]
       if (f){
         f()
@@ -193,16 +196,14 @@ export default class HomeScreen extends React.Component {
     }
     this.searchRanker = ran
     this.storeData = storeData
-    //why this weird deconstructor promise syntax?
-    //believe it or not, this is basically the only way to get 2 promises to resolve simultaneously in a single asynchronous function!
-    this.setState({
+    this.setState({ //enable playback controls
       asrLoaded: true
     })
-    this.rankingResults = ran(asr)
-    this.displaySearchResults.bind(this)()
+    this.rankingResults = ran(asr) //get search rankings
+    this.displaySearchResults.bind(this)() //display search results
   }
 
-  async startPlaying(){
+  async startPlaying(){ //debug control, will be removed in final app
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
       interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
@@ -220,20 +221,20 @@ export default class HomeScreen extends React.Component {
     return searchRanker.getRanker()
   }
 
-  stopPlaying(){
+  stopPlaying(){ //debug control, will be removed in final app
     this.sound.stopAsync();
     this.setState({
       audioPlaying: false
     })
   }
 
-  swapScreen(){
+  swapScreen(){ //debug option, will be removed in final app
     this.setState({
       nextScreen: !this.state.nextScreen
     })
   }
 
-  recordingIndicator(){
+  recordingIndicator(){ //ui
     if (this.state.isRecording){
       return <Text>Recording</Text>
     }
@@ -242,7 +243,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  imageRecordingButton(){
+  imageRecordingButton(){ //ui
     if (!this.state.isRecording){
       return <TouchableHighlight
         onPress={this.startAudioRecording.bind(this)}
@@ -271,7 +272,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  recordingButton(){
+  recordingButton(){ //ui
     if (!this.state.isRecording){
       return <Button
         onPress={this.startAudioRecording.bind(this)}
@@ -288,7 +289,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  playbackButton(){
+  playbackButton(){ //ui
     if (this.state.soundLoaded){
       if (this.state.audioPlaying){
         return <Button
@@ -307,7 +308,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  resultButton(){
+  resultButton(){ //ui
     if (this.state.nextScreen){
       return <Button
         onPress={this.swapScreen.bind(this)}
@@ -324,20 +325,20 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  textIndicator(){
+  textIndicator(){ //ui
     if (this.state.asrLoaded){
       return <Text>{this.asrText}</Text>
     }
   }
 
-  updateServerURL(text){
+  updateServerURL(text){ //server selection, will be removed in final app
     this.setState({
       serverURL: text
     })
     fetchData.StateData.ServerURL = text
   }
 
-  render() {
+  render() { //ui
     const { navigate } = this.props.navigation
     this.navigateto = navigate
     let animatedOpacity = this.state.animatedOpacity
@@ -353,8 +354,6 @@ export default class HomeScreen extends React.Component {
     let irecbutto = this.imageRecordingButton()
     this.height = height
     this.width = width
-    //YES, WE WILL EVENTUALLY IMPLEMENT CACHING
-    //NOT NOW THO FOR TESTING PURPOSES
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -416,7 +415,7 @@ export default class HomeScreen extends React.Component {
   }
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({ //stylesheet
   container: {
     flex: 1,
     backgroundColor: '#fff',
