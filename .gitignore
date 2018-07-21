@@ -19,6 +19,7 @@ $RECYCLE.BIN/
 *.lnk
 
 node_modules/
+.vs/
 .DS_Store
 
 # =========================

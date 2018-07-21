@@ -95,4 +95,5 @@ exports.getAsrText = getAsrText;
 exports.getInventory = getInventory;
 exports.getStoreData = getStoreData;
 exports.Images.notRecording = require("./not-recording.png");
-exports.Images.recording = require("./recording.png")
+exports.Images.recording = require("./recording.png");
+exports.Images.animationRipple = require("./animation-ripple.png");
