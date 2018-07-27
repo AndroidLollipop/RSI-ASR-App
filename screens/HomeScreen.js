@@ -206,6 +206,7 @@ export default class HomeScreen extends React.Component {
   }
 
   displaySearchResults(){ //called by stopAudioRecording
+    this.renderItemOP.bind(this)(this.rankingResults[0])
     var cells = this.makeTableView.bind(this)()
     this.setState({
       cells: cells

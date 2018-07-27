@@ -19,12 +19,11 @@ export default class ResultsScreen extends React.Component {
   }
 
   async componentDidMount(){
+    this.listenerIndex = fetchData.MapEventListeners.push(async () => {let map = await this.props.navigation.state.params.mapGenerator(); this.setState({myMap: map})})-1
     let map = await this.props.navigation.state.params.mapGenerator()
     this.setState({
       myMap: map
     })
-    this.listenerIndex = fetchData.MapEventListeners.push(async () => {let map = await this.props.navigation.state.params.mapGenerator(); this.setState({myMap: map})})-1
-    console.log("i'm alive")
   }
 
   componentWillUnmount(){
