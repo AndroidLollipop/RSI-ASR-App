@@ -114,7 +114,7 @@ export default class HomeScreen extends React.Component {
       fetchData.StateData.SelectedShelf = (await this.storeData)["map"]["shelfMap"][x.shelfLocation][x.shelfColumn]
     }
     catch(e){
-      console.log(e)
+      fetchData.StateData.SelectedShelf = null
     }
     for (var i = 0; i < fetchData.MapEventListeners.length; i++){ //updates accuracycheck screen
       var f = fetchData.MapEventListeners[i]
@@ -139,7 +139,6 @@ export default class HomeScreen extends React.Component {
   }
 
   makePolygon(x, i){ //render each shelf
-    console.log(x.map(x => x.map(x => x*this.width).join(",")).join(" ")) //making sure the vertices are formatted properly
     return (
       <Polygon
         key={i}
@@ -193,7 +192,6 @@ export default class HomeScreen extends React.Component {
     let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
     var hil = null;
     try {
-      console.log(savedSD)
       hil = this.makeHighlight(savedSD, pma.length)
     }
     catch(e){
@@ -440,6 +438,11 @@ export default class HomeScreen extends React.Component {
                 </View>
               </View>
               {rebutton}
+              <Button
+                onPress={() => {this.renderItemOP.bind(this)({})}}
+                title="Clear map highlight"
+                color="#841584"
+              />
               <Button
                 title="Navigation Test"
                 onPress={() =>
