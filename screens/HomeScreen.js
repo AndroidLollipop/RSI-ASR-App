@@ -176,7 +176,9 @@ export default class HomeScreen extends React.Component {
       })
     }
     catch(e){
-      console.log(e)
+      this.setState({
+        shelfHighlight: null
+      })
     }
     this.setState({
       polygonMap: pma
@@ -195,7 +197,6 @@ export default class HomeScreen extends React.Component {
       hil = this.makeHighlight(savedSD, pma.length)
     }
     catch(e){
-      console.log(e)
     }
     return <Svg
       height={this.width}
