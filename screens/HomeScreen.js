@@ -116,6 +116,12 @@ export default class HomeScreen extends React.Component {
     catch(e){
       console.log(e)
     }
+    for (var i = 0; i < fetchData.MapEventListeners.length; i++){ //updates accuracycheck screen
+      var f = fetchData.MapEventListeners[i]
+      if (f){
+        f()
+      }
+    }
     this.generateMap()
   }
 
@@ -178,21 +184,25 @@ export default class HomeScreen extends React.Component {
   }
 
   async secondScreenMapGenerator(){ //map for resultsscreen
+    var savedSD = fetchData.StateData.SelectedShelf
+    //we must save selectedShelf before we yield
+    //this really should be a function call parameter but idc
     this.storeData = await this.storeData
     let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
+    var hil = null;
     try {
-      let hil = makeHighlight(fetchData.StateData.SelectedShelf, pma.length)
-      this.setState({
-        shelfHighlight: hil
-      })
+      console.log(savedSD)
+      hil = this.makeHighlight(savedSD, pma.length)
     }
     catch(e){
+      console.log(e)
     }
     return <Svg
       height={this.width}
       width={this.width}
     >
     {pma}
+    {hil}
     </Svg>
   }
 

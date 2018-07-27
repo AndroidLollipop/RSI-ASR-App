@@ -1,6 +1,8 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Button } from 'react-native';
 
+var fetchData = require("../fetchData");
+
 export default class ResultsScreen extends React.Component {
   static navigationOptions = ({ navigation }) => ({
     title: `${navigation.state.params.name}`,
@@ -13,6 +15,7 @@ export default class ResultsScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {myMap: false}
+    this.listenerIndex = null;
   }
 
   async componentDidMount(){
@@ -20,7 +23,12 @@ export default class ResultsScreen extends React.Component {
     this.setState({
       myMap: map
     })
+    this.listenerIndex = fetchData.MapEventListeners.push(async () => {let map = await this.props.navigation.state.params.mapGenerator(); this.setState({myMap: map})})-1
     console.log("i'm alive")
+  }
+
+  componentWillUnmount(){
+    fetchData.MapEventListeners[this.listenerIndex] = undefined
   }
 
   render() {

@@ -111,7 +111,8 @@ var exports = module.exports = {
   dataInvalidated : true,
   Images: {},
   StateData: {"ServerURL": "http://192.168.1.31/speech/english/imda1.php", "SelectedShelf": null},
-  AsrEventListeners: []
+  AsrEventListeners: [],
+  MapEventListeners: []
 }
 exports.getAsrText = getAsrText;
 exports.getInventory = getInventory;
