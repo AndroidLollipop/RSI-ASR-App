@@ -50,7 +50,7 @@ var helperFunctions = require("../helperFunctions")
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
+    this.state = {shelfHighlight: null, animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
     this.searchRanker = null;
     this.storeData = null;
     this.asrText = null;
@@ -109,12 +109,22 @@ export default class HomeScreen extends React.Component {
     this.sstopRecordingEnable = true //allow an execution context to enter the stop recording critical section
   }
 
+  async renderItemOP(x){
+    try{
+      fetchData.StateData.SelectedShelf = (await this.storeData)["map"]["shelfMap"][x.shelfLocation][x.shelfColumn]
+    }
+    catch(e){
+      console.log(e)
+    }
+    this.generateMap()
+  }
+
   renderItem(x, i){ //render each cell
-    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation}/>
+    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderItemOP.bind(this)(x)}/>
   }
 
   makeTableView(){ //create result table
-    this.resultCells = this.rankingResults.map(this.renderItem)
+    this.resultCells = this.rankingResults.map(this.renderItem.bind(this))
     return <TableView>
       <Section>
         {this.resultCells}
@@ -135,9 +145,33 @@ export default class HomeScreen extends React.Component {
     )
   }
 
+  makeHighlight(x, i){
+    return (
+      <Polygon
+        key={i}
+        points={x.map(x => x.map(x => x*this.width).join(",")).join(" ")}
+        fill="red"
+        stroke="purple"
+        strokeWidth="1"
+      />
+    )
+  }
+
   async generateMap(){ //render result map
+    var savedSD = fetchData.StateData.SelectedShelf
+    //we must save selectedShelf before we yield
+    //this really should be a function call parameter but idc
     this.storeData = await this.storeData
     let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this)) //formatting shelf data and mapping each shelf to a polygon
+    try {
+      let hil = this.makeHighlight(savedSD, pma.length)
+      this.setState({
+        shelfHighlight: hil
+      })
+    }
+    catch(e){
+      console.log(e)
+    }
     this.setState({
       polygonMap: pma
     })
@@ -146,6 +180,14 @@ export default class HomeScreen extends React.Component {
   async secondScreenMapGenerator(){ //map for resultsscreen
     this.storeData = await this.storeData
     let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
+    try {
+      let hil = makeHighlight(fetchData.StateData.SelectedShelf, pma.length)
+      this.setState({
+        shelfHighlight: hil
+      })
+    }
+    catch(e){
+    }
     return <Svg
       height={this.width}
       width={this.width}
@@ -350,6 +392,7 @@ export default class HomeScreen extends React.Component {
     this.searchRanker = this.getRanker()
     this.storeData = fetchData.getStoreData()
     let map = this.state.polygonMap
+    let hil = this.state.shelfHighlight
     let {height, width} = Dimensions.get("window")
     let irecbutto = this.imageRecordingButton()
     this.height = height
@@ -407,6 +450,7 @@ export default class HomeScreen extends React.Component {
                 width={this.width}
               >
               {map}
+              {hil}
               </Svg>
             </View>
         </ScrollView>
