@@ -110,6 +110,17 @@ var validators = {
     var score = expected.length == 0 ? 1 : 0
     expected.map((v) => {rankingscontain[v] ? score += 1/expected.length : null})
     return score*(2-score)
+  },
+  rankingsum: (expected, rankings) => {
+    var rankingindices = {}
+    rankings.map((x, i) => {rankingindices[x.iuid] = i})
+    var score = 0
+    var cexpected = []
+    expected.map(v => {rankingindices[v] ? cexpected.push(v) : null})
+    cexpected.map((v, i) => {score += rankingindices[v]-i})
+    var worst = (rankings.length-expected.length)*expected.length
+    score = (worst-score)/worst
+    return score*(2-score)
   }
 }
 //we want our scoring functions to be convex to encourage consistent performance
@@ -118,9 +129,10 @@ var testset = [
     {query: "i want food and i want it now", expected: [10, 15, 17], validator: validators.topcontains(5)},
     {query: "obviously trash query", expected: [13], validator: validators.topcontains(5)}
 ]
-var accuracyChecker = () => {
+var accuracyChecker = (override) => {
     var score = 0
-    testset.map(x => {score += x.validator(x.expected, ranker(x.query))})
+    testset.map(x => override ? override(x.expected, ranker(x.query)) : x.validator(x.expected, ranker(x.query))).map(x => {score += x})
     return score/testset.length
 }
-console.log(accuracyChecker())
+accuracyChecker()
+//accuracyChecker(validators.rankingsum)
