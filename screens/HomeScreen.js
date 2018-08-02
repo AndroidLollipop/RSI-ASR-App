@@ -312,7 +312,7 @@ export default class HomeScreen extends React.Component {
         style={{height: 250, width: 250, borderRadius: 125}}>
         <View>
           <Animated.Image
-            style={{opacity: Animated.add(6, Animated.multiply(this.state.animatedOpacity, -5)), width: 250, height: 250, position: "absolute", left: 0, top: 0, transform: [{scale: this.state.animatedOpacity}]}}
+            style={{opacity: Animated.add(6, Animated.multiply(this.state.animatedOpacity, -5)), width: 250, height: 250, left: 0, top: 0, transform: [{scale: this.state.animatedOpacity}]}}
             source={fetchData.Images.animationRipple}
             />
           <Image

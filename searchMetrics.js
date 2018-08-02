@@ -134,5 +134,5 @@ var accuracyChecker = (override) => {
     testset.map(x => override ? override(x.expected, ranker(x.query)) : x.validator(x.expected, ranker(x.query))).map(x => {score += x})
     return score/testset.length
 }
-accuracyChecker()
-//accuracyChecker(validators.rankingsum)
+console.log(accuracyChecker())
+//console.log(accuracyChecker(validators.rankingsum))
