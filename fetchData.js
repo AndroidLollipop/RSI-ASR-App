@@ -122,13 +122,15 @@ exports.getStoreData = getStoreData;
 exports.Images.notRecording = require("./not-recording.png");
 exports.Images.recording = require("./recording.png");
 exports.Images.animationRipple = require("./animation-ripple.png");
-setInterval(async () => {
-  storeData.items.push([{"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]}])
-  await getStoreData(false)
+var refresh = async () => {
+  storeData.items.push({"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]})
+  await getStoreData(true)
   for (var i = 0; i < exports.RefEventListeners.length; i++){
     var f = exports.RefEventListeners[i]
     if (f){
       f()
     }
   }
-}, 5000)
+  setTimeout(refresh, 10000)
+}
+refresh()

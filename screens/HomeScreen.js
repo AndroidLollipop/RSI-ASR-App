@@ -67,16 +67,10 @@ export default class HomeScreen extends React.Component {
   componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
     this.generateMap.bind(this)()
     this.listenerIndex = fetchData.RefEventListeners.push(
-      async () => {
-        this.storeData = await fetchData.getStoreData()
-        this.searchRanker = await this.getRanker()
-        this.refreshSearchResults.bind(this)()
-        for (var i = 0; i < fetchData.AsrEventListeners.length; i++){
-          var f = fetchData.AsrEventListeners[i]
-          if (f){
-            f()
-          }
-        }
+    async () => {
+      this.storeData = await fetchData.getStoreData()
+      this.searchRanker = await this.getRanker()
+      this.refreshSearchResults.bind(this)()
     })-1
   }
 
@@ -233,15 +227,16 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  resultCellsGetter(){
+  async resultCellsGetter(){
+    await this.refreshSearchResults.bind(this)()
     return this.state.cells
   }
 
-  refreshSearchResults(){
+  async refreshSearchResults(){
     if (!this.rankingResults){
       return
     }
-    this.rankingResults = this.searchRanker(this.asrText)
+    this.rankingResults = (await this.searchRanker)(this.asrText)
     var cells = this.makeTableView.bind(this)()
     this.setState({
       cells: cells

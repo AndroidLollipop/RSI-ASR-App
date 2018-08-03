@@ -16,22 +16,25 @@ export default class ResultsScreen extends React.Component {
     super(props);
     this.state = {myMap: false, cells: false}
     this.listenerIndex = null;
+    this.listenerIndey = null;
   }
 
   async componentDidMount(){
-    this.listenerIndex = fetchData.MapEventListeners.push(async () => {let cells = this.props.navigation.state.params.cellsGetter(); this.setState({cells: cells}); let map = await this.props.navigation.state.params.mapGenerator(); this.setState({myMap: map})})-1
+    this.listenerIndex = fetchData.MapEventListeners.push(async () => {let map = await this.props.navigation.state.params.mapGenerator(); this.setState({myMap: map})})-1
+    this.listenerIndey = fetchData.RefEventListeners.push(async () => {let cells = await this.props.navigation.state.params.cellsGetter(); this.setState({cells: cells})})-1
     let cells = this.props.navigation.state.params.cellsGetter()
+    let map = this.props.navigation.state.params.mapGenerator()
     this.setState({
-      cells: cells
+      cells: await cells
     })
-    let map = await this.props.navigation.state.params.mapGenerator()
     this.setState({
-      myMap: map
+      myMap: await map
     })
   }
 
   componentWillUnmount(){
     fetchData.MapEventListeners[this.listenerIndex] = undefined
+    fetchData.RefEventListeners[this.listenerIndey] = undefined
   }
 
   render() {
