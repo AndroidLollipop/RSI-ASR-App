@@ -36,7 +36,7 @@ var getAsrText = async (uri) => { //this code directly mirrors the server reques
   }
   return myPromise
 }
-storeData = {
+var storeData = {
   "items": [
     {"iuid": 10, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]},
     {"iuid": 15, "istock": 60, "itemName": "Bubble Gum", "shelfLocation": "shelf1", "friendlyLocation": "Banned Foods Section", "shelfRow": 5, "shelfColumn": 1, "tags": ["food", "banned", "bubble", "gum"]},
@@ -86,7 +86,7 @@ storeData = {
     "scale": 50
   }
 }
-inventoryList = {
+var inventoryList = {
   "available": [10, 15, 16, 17, 20, 18]
 }
 //returns iuids of items in stock
@@ -98,8 +98,8 @@ var getInventory = () => {
   });
 }
 storeDataCache = false
-var getStoreData = () => {
-  if (!storeDataCache){
+var getStoreData = (refresh) => {
+  if (!storeDataCache || refresh){
     storeDataCache = new Promise(resolve => {
       setTimeout(() => {
         resolve(storeData);
@@ -113,7 +113,8 @@ var exports = module.exports = {
   Images: {},
   StateData: {"ServerURL": "http://192.168.1.31/speech/english/imda1.php", "SelectedShelf": null},
   AsrEventListeners: [],
-  MapEventListeners: []
+  MapEventListeners: [],
+  RefEventListeners: []
 }
 exports.getAsrText = getAsrText;
 exports.getInventory = getInventory;
@@ -121,3 +122,13 @@ exports.getStoreData = getStoreData;
 exports.Images.notRecording = require("./not-recording.png");
 exports.Images.recording = require("./recording.png");
 exports.Images.animationRipple = require("./animation-ripple.png");
+setInterval(async () => {
+  storeData.items.push([{"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]}])
+  await getStoreData(false)
+  for (var i = 0; i < exports.RefEventListeners.length; i++){
+    var f = exports.RefEventListeners[i]
+    if (f){
+      f()
+    }
+  }
+}, 5000)

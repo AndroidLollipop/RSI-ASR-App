@@ -58,6 +58,7 @@ export default class HomeScreen extends React.Component {
     this.rankingResults = null;
     this.startRecordingEnable = true;
     this.sstopRecordingEnable = false;
+    this.listenerIndex = null;
   }
   static navigationOptions = {
     title: "Home",
@@ -65,6 +66,22 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
     this.generateMap.bind(this)()
+    this.listenerIndex = fetchData.RefEventListeners.push(
+      async () => {
+        this.storeData = await fetchData.getStoreData()
+        this.searchRanker = await this.getRanker()
+        this.refreshSearchResults.bind(this)()
+        for (var i = 0; i < fetchData.AsrEventListeners.length; i++){
+          var f = fetchData.AsrEventListeners[i]
+          if (f){
+            f()
+          }
+        }
+    })-1
+  }
+
+  componentWillUnmount(){
+    fetchData.RefEventListeners[this.listenerIndex] = undefined
   }
 
   async startAudioRecording(){ //start animations and start audio recording
@@ -116,7 +133,7 @@ export default class HomeScreen extends React.Component {
     catch(e){
       fetchData.StateData.SelectedShelf = null
     }
-    for (var i = 0; i < fetchData.MapEventListeners.length; i++){ //updates accuracycheck screen
+    for (var i = 0; i < fetchData.MapEventListeners.length; i++){
       var f = fetchData.MapEventListeners[i]
       if (f){
         f()
@@ -212,8 +229,23 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
+      this.navigateto('Result', {'name': 'Search Results', 'cellsGetter': this.resultCellsGetter.bind(this), 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
     }
+  }
+
+  resultCellsGetter(){
+    return this.state.cells
+  }
+
+  refreshSearchResults(){
+    if (!this.rankingResults){
+      return
+    }
+    this.rankingResults = this.searchRanker(this.asrText)
+    var cells = this.makeTableView.bind(this)()
+    this.setState({
+      cells: cells
+    })
   }
 
   async stopAudioRecording(){
@@ -447,7 +479,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'cellsGetter': this.resultCellsGetter.bind(this), 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
                 }
               />
               <Button

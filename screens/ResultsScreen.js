@@ -14,12 +14,16 @@ export default class ResultsScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {myMap: false}
+    this.state = {myMap: false, cells: false}
     this.listenerIndex = null;
   }
 
   async componentDidMount(){
-    this.listenerIndex = fetchData.MapEventListeners.push(async () => {let map = await this.props.navigation.state.params.mapGenerator(); this.setState({myMap: map})})-1
+    this.listenerIndex = fetchData.MapEventListeners.push(async () => {let cells = this.props.navigation.state.params.cellsGetter(); this.setState({cells: cells}); let map = await this.props.navigation.state.params.mapGenerator(); this.setState({myMap: map})})-1
+    let cells = this.props.navigation.state.params.cellsGetter()
+    this.setState({
+      cells: cells
+    })
     let map = await this.props.navigation.state.params.mapGenerator()
     this.setState({
       myMap: map
@@ -40,7 +44,7 @@ export default class ResultsScreen extends React.Component {
             navigate('Accuracy', {'name': 'Check Accuracy', 'asrTextGetter': this.props.navigation.state.params.asrTextGetter})
           }
         />
-        {this.props.navigation.state.params.resultcells}
+        {this.state.cells}
         {this.state.myMap}
       </ScrollView>
     );
