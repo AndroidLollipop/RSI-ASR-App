@@ -223,11 +223,11 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'cellsGetter': this.resultCellsGetter.bind(this), 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.resultCellsRefresher.bind(this), 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
     }
   }
 
-  async resultCellsGetter(){
+  async resultCellsRefresher(){
     await this.refreshSearchResults.bind(this)()
     return this.state.cells
   }
@@ -472,9 +472,24 @@ export default class HomeScreen extends React.Component {
                 color="#841584"
               />
               <Button
+                onPress={fetchData.fupdate}
+                title="Fake update"
+                color="#841584"
+              />
+              <Button
+                onPress={fetchData.refresh}
+                title="Refresh"
+                color="#841584"
+              />
+              <Button
+                onPress={() => {fetchData.toggleInterval(); this.setState({})}}
+                title={fetchData.intervalActive() ? "Disable refresh interval" : "Enable refresh interval"}
+                color="#841584"
+              />
+              <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'cellsGetter': this.resultCellsGetter.bind(this), 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.resultCellsRefresher.bind(this), 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
                 }
               />
               <Button

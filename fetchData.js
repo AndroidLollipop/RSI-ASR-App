@@ -108,6 +108,28 @@ var getStoreData = (refresh) => {
   }
   return storeDataCache
 }
+var refresh = async () => {
+  await getStoreData(true)
+  for (var i = 0; i < exports.RefEventListeners.length; i++){
+    var f = exports.RefEventListeners[i]
+    if (f){
+      f()
+    }
+  }
+}
+var fakeupd = async () => { //what a faked up name right
+  storeData.items.push({"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]})
+}
+var interval = false;
+var toggleInterval = () => {
+  if (interval){
+    clearInterval(interval)
+    interval = false;
+    return
+  }
+  interval = setInterval(() => {fakeupd(); refresh()}, 15000); fakeupd(); refresh()
+}
+var intervalActive = () => interval;
 var exports = module.exports = {
   dataInvalidated : true,
   Images: {},
@@ -122,15 +144,7 @@ exports.getStoreData = getStoreData;
 exports.Images.notRecording = require("./not-recording.png");
 exports.Images.recording = require("./recording.png");
 exports.Images.animationRipple = require("./animation-ripple.png");
-var refresh = async () => {
-  storeData.items.push({"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]})
-  await getStoreData(true)
-  for (var i = 0; i < exports.RefEventListeners.length; i++){
-    var f = exports.RefEventListeners[i]
-    if (f){
-      f()
-    }
-  }
-  setTimeout(refresh, 10000)
-}
-refresh()
+exports.refresh = refresh;
+exports.fupdate = fakeupd;
+exports.intervalActive = intervalActive;
+exports.toggleInterval = toggleInterval;
