@@ -117,8 +117,9 @@ var refresh = async () => {
     }
   }
 }
-var fakeupd = async () => { //what a faked up name right
+var fakeupd = () => { //what a faked up name right
   storeData.items.push({"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]})
+  refresh()
 }
 var interval = false;
 var toggleInterval = () => {

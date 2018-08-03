@@ -477,11 +477,6 @@ export default class HomeScreen extends React.Component {
                 color="#841584"
               />
               <Button
-                onPress={fetchData.refresh}
-                title="Refresh"
-                color="#841584"
-              />
-              <Button
                 onPress={() => {fetchData.toggleInterval(); this.setState({})}}
                 title={fetchData.intervalActive() ? "Disable refresh interval" : "Enable refresh interval"}
                 color="#841584"
