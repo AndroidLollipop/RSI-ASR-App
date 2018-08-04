@@ -100,11 +100,18 @@ var getInventory = () => {
 storeDataCache = false
 var getStoreData = (refresh) => {
   if (!storeDataCache || refresh){
-    storeDataCache = new Promise(resolve => {
+    var fakeNetworkRequest = new Promise(resolve => {
       setTimeout(() => {
         resolve(storeData);
       }, 2000);
     });
+    if (!storeDataCache){
+      storeDataCache = fakeNetworkRequest // we don't have any data yet
+    }
+    else {
+      fakeNetworkRequest.then((refreshedData) => {storeDataCache = refreshedData}) // serve old data until new data arrives
+      return fakeNetworkRequest // give the caller a completion handle
+    }
   }
   return storeDataCache
 }
