@@ -106,11 +106,11 @@ var getStoreData = (refresh) => {
       }, 2000);
     });
     if (!storeDataCache){
-      storeDataCache = fakeNetworkRequest // we don't have any data yet
+      storeDataCache = fakeNetworkRequest //we don't have any data yet
     }
     else {
-      fakeNetworkRequest.then((refreshedData) => {storeDataCache = refreshedData}) // serve old data until new data arrives
-      return fakeNetworkRequest // give the caller a completion handle
+      fakeNetworkRequest.then((refreshedData) => {storeDataCache = refreshedData}) //serve old data until new data arrives
+      return fakeNetworkRequest //give the caller a completion handle
     }
   }
   return storeDataCache
@@ -128,7 +128,7 @@ var refresh = async () => {
     }
   }
 }
-var fakeupd = () => { //what a faked up name right
+var fakeupd = () => { //make fake update
   storeData.items.push({"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]})
   refresh()
 }
@@ -139,7 +139,7 @@ var toggleInterval = () => {
     interval = false;
     return
   }
-  interval = setInterval(() => {fakeupd();}, 15000); fakeupd()
+  interval = setInterval(() => {fakeupd()}, 15000); fakeupd()
 }
 var intervalActive = () => interval;
 var exports = module.exports = {
