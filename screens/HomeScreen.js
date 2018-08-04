@@ -67,10 +67,10 @@ export default class HomeScreen extends React.Component {
   componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
     this.generateMap.bind(this)()
     this.listenerIndex = fetchData.RefEventListeners.push(
-    async () => {
+    async (stageCompletion, stageCompleter) => {
       this.storeData = await fetchData.getStoreData()
       this.searchRanker = await this.getRanker()
-      this.refreshSearchResults.bind(this)()
+      this.refreshSearchResults.bind(this)(stageCompleter)
     })-1
   }
 
@@ -227,13 +227,14 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  async resultCellsRefresher(){
-    await this.refreshSearchResults.bind(this)()
+  async resultCellsRefresher(stageCompletion){
+    await stageCompletion
     return this.state.cells
   }
 
-  async refreshSearchResults(){
+  async refreshSearchResults(stageCompleter){
     if (!this.rankingResults){
+      stageCompleter()
       return
     }
     this.rankingResults = (await this.searchRanker)(this.asrText)
@@ -241,6 +242,7 @@ export default class HomeScreen extends React.Component {
     this.setState({
       cells: cells
     })
+    stageCompleter()
   }
 
   async stopAudioRecording(){

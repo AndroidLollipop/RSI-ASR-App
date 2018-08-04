@@ -117,10 +117,14 @@ var getStoreData = (refresh) => {
 }
 var refresh = async () => {
   await getStoreData(true)
+  var stageCompleter
+  var stageCompletion = new Promise((resolve) => {
+    stageCompleter = resolve
+  })
   for (var i = 0; i < exports.RefEventListeners.length; i++){
     var f = exports.RefEventListeners[i]
     if (f){
-      f()
+      f(stageCompletion, stageCompleter)
     }
   }
 }
@@ -135,7 +139,7 @@ var toggleInterval = () => {
     interval = false;
     return
   }
-  interval = setInterval(() => {fakeupd(); refresh()}, 15000); fakeupd(); refresh()
+  interval = setInterval(() => {fakeupd();}, 15000); fakeupd()
 }
 var intervalActive = () => interval;
 var exports = module.exports = {
