@@ -1,5 +1,22 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Button } from 'react-native';
+import { ScrollView, StyleSheet, Button, Dimensions } from 'react-native';
+
+import Svg,{
+  Circle,
+  Ellipse,
+  G,
+  LinearGradient,
+  RadialGradient,
+  Line,
+  Path,
+  Polygon,
+  Polyline,
+  Rect,
+  Symbol,
+  Use,
+  Defs,
+  Stop
+} from 'react-native-svg';
 
 var fetchData = require("../fetchData");
 
@@ -14,21 +31,23 @@ export default class ResultsScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {myMap: false, cells: false}
+    this.state = {myMap: false, cells: false, myHighlight: false}
     this.listenerIndex = null;
     this.listenerIndey = null;
   }
 
   async componentDidMount(){
-    this.listenerIndex = fetchData.MapEventListeners.push(async () => {let map = await this.props.navigation.state.params.mapGenerator(); this.setState({myMap: map})})-1
+    this.listenerIndex = fetchData.MapEventListeners.push(() => {let hil = this.props.navigation.state.params.getHighlight(); this.setState({myHighlight: hil})})-1
     this.listenerIndey = fetchData.RefEventListeners.push(async (stageCompletion) => {let cells = await this.props.navigation.state.params.cellsGetter(stageCompletion); this.setState({cells: cells})})-1
     let cells = this.props.navigation.state.params.resultcells
     let map = this.props.navigation.state.params.mapGenerator()
+    let hil = this.props.navigation.state.params.getHighlight()
     this.setState({
-      cells: cells
+      cells: cells,
+      myHighlight: hil
     })
     this.setState({
-      myMap: await map
+      myMap: await map,
     })
   }
 
@@ -39,6 +58,9 @@ export default class ResultsScreen extends React.Component {
 
   render() {
     const { navigate } = this.props.navigation
+    let {height, width} = Dimensions.get("window")
+    this.height = height
+    this.width = width
     return (
       <ScrollView style={styles.container}>
         <Button
@@ -48,7 +70,13 @@ export default class ResultsScreen extends React.Component {
           }
         />
         {this.state.cells}
+        <Svg
+          height={this.width}
+          width={this.width}
+        >
         {this.state.myMap}
+        {this.state.myHighlight}
+        </Svg>
       </ScrollView>
     );
   }

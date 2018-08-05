@@ -59,13 +59,16 @@ export default class HomeScreen extends React.Component {
     this.startRecordingEnable = true;
     this.sstopRecordingEnable = false;
     this.listenerIndex = null;
+    this.mapRenderComplete = null;
+    this.polygonMap = null;
+    this.mapHighlight = null;
   }
   static navigationOptions = {
     title: "Home",
   };
 
   componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
-    this.generateMap.bind(this)()
+    this.mapRenderComplete = this.generateMap.bind(this)()
     this.listenerIndex = fetchData.RefEventListeners.push(
     async (stageCompletion, stageCompleter) => {
       this.storeData = await fetchData.getStoreData()
@@ -127,13 +130,13 @@ export default class HomeScreen extends React.Component {
     catch(e){
       fetchData.StateData.SelectedShelf = null
     }
+    this.generateHighlight()
     for (var i = 0; i < fetchData.MapEventListeners.length; i++){
       var f = fetchData.MapEventListeners[i]
       if (f){
         f()
       }
     }
-    this.generateMap()
   }
 
   renderItem(x, i){ //render each cell
@@ -174,46 +177,35 @@ export default class HomeScreen extends React.Component {
   }
 
   async generateMap(){ //render result map
-    var savedSD = fetchData.StateData.SelectedShelf
-    //we must save selectedShelf before we yield
-    //this really should be a function call parameter but idc
     this.storeData = await this.storeData
     let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this)) //formatting shelf data and mapping each shelf to a polygon
-    try {
-      let hil = this.makeHighlight(savedSD, pma.length)
-      this.setState({
-        shelfHighlight: hil
-      })
-    }
-    catch(e){
-      this.setState({
-        shelfHighlight: null
-      })
-    }
+    this.polygonMap = pma
     this.setState({
       polygonMap: pma
     })
   }
 
-  async secondScreenMapGenerator(){ //map for resultsscreen
+  async getMap(){
+    await this.mapRenderComplete;
+    return this.polygonMap
+  }
+
+  generateHighlight(){
     var savedSD = fetchData.StateData.SelectedShelf
-    //we must save selectedShelf before we yield
-    //this really should be a function call parameter but idc
-    this.storeData = await this.storeData
-    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
-    var hil = null;
     try {
-      hil = this.makeHighlight(savedSD, pma.length)
+      let pma = this.state.polygonMap
+      let hil = this.makeHighlight(savedSD, pma.length)
+      this.mapHighlight = hil
+      this.setState({
+        shelfHighlight: hil
+      })
     }
     catch(e){
+      this.mapHighlight = null
+      this.setState({
+        shelfHighlight: null
+      })
     }
-    return <Svg
-      height={this.width}
-      width={this.width}
-    >
-    {pma}
-    {hil}
-    </Svg>
   }
 
   displaySearchResults(){ //called by stopAudioRecording
@@ -223,7 +215,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.resultCellsRefresher.bind(this), 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.resultCellsRefresher.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'getHighlight': () => this.mapHighlight})
     }
   }
 
@@ -486,7 +478,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.resultCellsRefresher.bind(this), 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.resultCellsRefresher.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'getHighlight': () => this.mapHighlight})
                 }
               />
               <Button
