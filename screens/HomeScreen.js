@@ -70,8 +70,14 @@ export default class HomeScreen extends React.Component {
     title: "Home",
   };
 
-  componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
+  componentWillMount(){ //componentWillMount runs immediately before this component starts rendering for the first time
+    this.searchRanker = this.getRanker()
+    this.storeData = fetchData.getStoreData()
     this.mapRenderComplete = this.generateMap.bind(this)()
+  }
+
+  componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
+    //the reason we (can, but) don't put this in componentWillMount is that only componentDidMount is guaranteed to be paired with componentWillUnmount
     this.listenerIndex = fetchData.RefEventListeners.push(
     async (stageCompletion, stageCompleter) => {
       this.storeData = await fetchData.getStoreData()
@@ -190,7 +196,7 @@ export default class HomeScreen extends React.Component {
   }
 
   async getMap(){
-    await this.mapRenderComplete;
+    await this.mapRenderComplete
     return this.polygonMap
   }
 
@@ -424,8 +430,6 @@ export default class HomeScreen extends React.Component {
     let playback = this.playbackButton()
     let rebutton = this.resultButton()
     let tedicator = this.textIndicator()
-    this.searchRanker = this.getRanker()
-    this.storeData = fetchData.getStoreData()
     let map = this.state.polygonMap
     let hil = this.state.shelfHighlight
     let irecbutto = this.imageRecordingButton()
