@@ -1,3 +1,5 @@
+import clone from './clone'; //TO PREVENT fakeupd FROM VIOLATING IMMUTABILITY OF storeData, WILL BE REMOVED IN FINAL APP
+
 var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
   var resolveMyPromise
@@ -129,6 +131,7 @@ var refresh = async () => {
   }
 }
 var fakeupd = () => { //make fake update
+  storeData = clone(storeData)
   storeData.items.push({"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]})
   refresh()
 }
