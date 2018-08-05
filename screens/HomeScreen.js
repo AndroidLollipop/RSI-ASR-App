@@ -133,6 +133,7 @@ export default class HomeScreen extends React.Component {
     catch(e){
       fetchData.StateData.SelectedShelf = null
     }
+    await this.mapRenderComplete
     this.generateHighlight()
     for (var i = 0; i < fetchData.MapEventListeners.length; i++){
       var f = fetchData.MapEventListeners[i]
