@@ -21,6 +21,9 @@ export default class AccuracyCheck extends React.Component {
       this.state = {text: "", accuracyText: "0%"}
     }
     this.latestScheduled = 0
+    let {height, width} = Dimensions.get("window")
+    this.width = width
+    this.height = height
   }
 
   componentDidMount() {
@@ -77,11 +80,7 @@ export default class AccuracyCheck extends React.Component {
   }
 
   render() {
-    let {height, width} = Dimensions.get("window")
-    this.width = width
-    this.height = height
     this.asrText = this.props.navigation.state.params.asrTextGetter()
-    //fetch this per render, because window size can change when the user switches from landscape to portrait
     return (
       <ScrollView style={styles.container}>
         <View style={{alignItems: 'center'}}>

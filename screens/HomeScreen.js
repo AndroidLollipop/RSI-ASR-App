@@ -62,6 +62,9 @@ export default class HomeScreen extends React.Component {
     this.mapRenderComplete = null;
     this.polygonMap = null;
     this.mapHighlight = null;
+    let {height, width} = Dimensions.get("window")
+    this.height = height
+    this.width = width
   }
   static navigationOptions = {
     title: "Home",
@@ -424,10 +427,7 @@ export default class HomeScreen extends React.Component {
     this.storeData = fetchData.getStoreData()
     let map = this.state.polygonMap
     let hil = this.state.shelfHighlight
-    let {height, width} = Dimensions.get("window")
     let irecbutto = this.imageRecordingButton()
-    this.height = height
-    this.width = width
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>

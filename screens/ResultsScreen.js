@@ -34,6 +34,9 @@ export default class ResultsScreen extends React.Component {
     this.state = {myMap: false, cells: false, myHighlight: false}
     this.listenerIndex = null;
     this.listenerIndey = null;
+    let {height, width} = Dimensions.get("window");
+    this.height = height;
+    this.width = width;
   }
 
   async componentDidMount(){
@@ -58,9 +61,6 @@ export default class ResultsScreen extends React.Component {
 
   render() {
     const { navigate } = this.props.navigation
-    let {height, width} = Dimensions.get("window")
-    this.height = height
-    this.width = width
     return (
       <ScrollView style={styles.container}>
         <Button
