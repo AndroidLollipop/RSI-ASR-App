@@ -40,11 +40,11 @@ export default class ResultsScreen extends React.Component {
   }
 
   async componentDidMount(){
-    this.listenerIndex = fetchData.MapEventListeners.push(() => {let hil = this.props.navigation.state.params.getHighlight(); this.setState({myHighlight: hil})})-1
+    this.listenerIndex = fetchData.MapEventListeners.push(() => {let hil = this.props.navigation.state.params.highlightGetter(); this.setState({myHighlight: hil})})-1
     this.listenerIndey = fetchData.RefEventListeners.push(async (stageCompletion) => {let cells = await this.props.navigation.state.params.cellsGetter(stageCompletion); this.setState({cells: cells})})-1
     let cells = this.props.navigation.state.params.resultcells
     let map = this.props.navigation.state.params.mapGenerator()
-    let hil = this.props.navigation.state.params.getHighlight()
+    let hil = this.props.navigation.state.params.highlightGetter()
     this.setState({
       cells: cells,
       myHighlight: hil

@@ -166,7 +166,7 @@ export default class HomeScreen extends React.Component {
     return (
       <Polygon
         key={i}
-        points={x.map(x => x.map(x => x*this.width).join(",")).join(" ")}
+        points={x.map(x => x.map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
         fill="lime"
         stroke="purple"
         strokeWidth="1"
@@ -178,7 +178,7 @@ export default class HomeScreen extends React.Component {
     return (
       <Polygon
         key={i}
-        points={x.map(x => x.map(x => x*this.width).join(",")).join(" ")}
+        points={x.map(x => x.map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
         fill="red"
         stroke="purple"
         strokeWidth="1"
@@ -188,6 +188,7 @@ export default class HomeScreen extends React.Component {
 
   async generateMap(){ //render result map
     this.storeData = await this.storeData
+    this.mapWidth = this.storeData.map.storeMap[1][0] //a temporary hack while we work on more important things
     let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this)) //formatting shelf data and mapping each shelf to a polygon
     this.polygonMap = pma
     this.setState({
@@ -225,11 +226,11 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.resultCellsRefresher.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'getHighlight': () => this.mapHighlight})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight})
     }
   }
 
-  async resultCellsRefresher(stageCompletion){
+  async refreshResultCells(stageCompletion){
     await stageCompletion
     return this.state.cells
   }
@@ -483,7 +484,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.resultCellsRefresher.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'getHighlight': () => this.mapHighlight})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight})
                 }
               />
               <Button
