@@ -188,7 +188,7 @@ export default class HomeScreen extends React.Component {
 
   async generateMap(){ //render result map
     this.storeData = await this.storeData
-    this.mapWidth = this.storeData.map.storeMap[1][0] //a temporary hack while we work on more important things
+    this.mapWidth = this.storeData.map.temporaryScale //a temporary hack while we work on more important things
     let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this)) //formatting shelf data and mapping each shelf to a polygon
     this.polygonMap = pma
     this.setState({

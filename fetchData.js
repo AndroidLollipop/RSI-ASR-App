@@ -60,6 +60,7 @@ var storeData = {
   //(x, y), POSITIVE x is RIGHT, POSITIVE y is UP
   "map": {
     "storeMap": [[0, 0], [10, 0], [10, 10], [0, 10]],
+    "temporaryScale": 10,
     "shelfMap": {
       "shelf1 left": [
         [[1, 2], [3, 2], [3, 2.5], [1, 2.5]], //1lA
