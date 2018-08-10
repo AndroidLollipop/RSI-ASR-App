@@ -79,4 +79,4 @@ var dijkstra = (v1, v2) => {
     }
   }
 }
-console.log(dijkstra([1, 1], [2, 5]))
+console.log(dijkstra([1, 2], [2, 5]))
