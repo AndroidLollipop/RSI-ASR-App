@@ -75,7 +75,7 @@ export default class ResultsScreen extends React.Component {
         <TouchableOpacity
           activeOpacity={1}
           onPress={this.props.navigation.state.params.mapCanvasOP}
-          >
+        >
           <Svg
             height={this.width}
             width={this.width}
