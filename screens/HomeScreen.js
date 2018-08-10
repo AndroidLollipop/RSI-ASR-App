@@ -166,7 +166,7 @@ export default class HomeScreen extends React.Component {
     return (
       <Polygon
         key={i}
-        points={x.map(x => x.map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
+        points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
         fill="lime"
         stroke="purple"
         strokeWidth="1"
@@ -178,7 +178,7 @@ export default class HomeScreen extends React.Component {
     return (
       <Polygon
         key={i}
-        points={x.map(x => x.map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
+        points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
         fill="red"
         stroke="purple"
         strokeWidth="1"
