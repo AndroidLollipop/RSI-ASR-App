@@ -1,4 +1,4 @@
-import clone from './clone'; //TO PREVENT fakeupd FROM VIOLATING IMMUTABILITY OF storeData, WILL BE REMOVED IN FINAL APP
+import clone from './clone' //TO PREVENT fakeupd FROM VIOLATING IMMUTABILITY OF storeData, WILL BE REMOVED IN FINAL APP
 
 var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
@@ -58,7 +58,7 @@ var storeData = {
   //(x, y), POSITIVE x is RIGHT, POSITIVE y is UP
    //we are going to use ANTI-CLOCKWISE winding order for polygons
   //(x, y), POSITIVE x is RIGHT, POSITIVE y is UP
-  "map": {
+  "map": { //!!!IMPORTANT: DO NOT CHANGE THIS WITHOUT ALSO CHANGING dijkstraConvex.js!
     "storeMap": [[0, 0], [10, 0], [10, 10], [0, 10]],
     "temporaryScale": 10,
     "shelfMap": {
@@ -112,7 +112,7 @@ var storeData = {
       ]
       //FORMAT: [ShelveSections:[Vertices:[x, y]]]
     },
-    "convexMap":[
+    "convexRegions":[
       [[1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9]], //i know that this is a degenerate polygon
       [[9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9]],
       [[1, 2], [2, 2], [4, 2], [6, 2], [8, 2], [9, 2]],
@@ -121,6 +121,57 @@ var storeData = {
       [[1, 7], [2, 7], [4, 7], [6, 7], [8, 7], [9, 7], [9, 8], [8, 8], [6, 8], [4, 8], [2, 8], [1, 8]],
       [[1, 9], [2, 9], [4, 9], [6, 9], [8, 9], [9, 9]]
     ],
+    //FORMAT: [ConvexPolygons:[Vertices:[x, y]]]
+    "shelfAssociates":{
+      "shelf1 left": [
+        [2, 2], //1lA
+        [4, 2], //1lB
+        [6, 2], //1lC
+        [8, 2] //1lD
+      ],
+       "shelf2 right": [
+        [2, 3], //2rA
+        [4, 3], //2rB
+        [6, 3], //2rC
+        [8, 3] //2rD
+       ],
+       "shelf2 left": [
+        [2, 4], //2lA
+        [4, 4], //2lB
+        [6, 4], //2lC
+        [8, 4] //2lD
+      ],
+       "shelf3 right": [
+        [2, 5], //3rA
+        [4, 5], //3rB
+        [6, 5], //3rC
+        [8, 5] //3rD
+      ],
+       "shelf3 left": [
+        [2, 6], //3lA
+        [4, 6], //3lB
+        [6, 6], //3lC
+        [8, 6] //3lD
+      ],
+       "shelf4 right": [
+        [2, 7], //4rA
+        [4, 7], //4rB
+        [6, 7], //4rC
+        [8, 7] //4rD
+      ],
+       "shelf4 left": [
+        [2, 8], //4lA
+        [4, 8], //4lB
+        [6, 8], //4lC
+        [8, 8] //4lD
+      ],
+       "shelf5 right": [
+        [2, 9], //5rA
+        [4, 9], //5rB
+        [6, 9], //5rC
+        [8, 9] //5rD
+      ]
+    },
     "scale": 50
   }
 }

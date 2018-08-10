@@ -47,10 +47,12 @@ var searchRanker = require("../searchRanker")
 
 var helperFunctions = require("../helperFunctions")
 
+var dijkstraConvex = require("../dijkstraConvex")
+
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {shelfHighlight: null, animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
+    this.state = {shelfHighlight: null, pathHighlight: null, animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
     this.searchRanker = null;
     this.storeData = null;
     this.asrText = null;
@@ -62,6 +64,8 @@ export default class HomeScreen extends React.Component {
     this.mapRenderComplete = null;
     this.polygonMap = null;
     this.mapHighlight = null;
+    this.pathHighlight = null;
+    this.computedPath = null;
     let {height, width} = Dimensions.get("window")
     this.height = height
     this.width = width
@@ -140,6 +144,12 @@ export default class HomeScreen extends React.Component {
       fetchData.StateData.SelectedShelf = null
     }
     await this.mapRenderComplete
+    try{
+      this.computedPath = await dijkstraConvex.dijkstra([1, 1], (await this.storeData)["map"]["shelfAssociates"][x.shelfLocation][x.shelfColumn])
+    }
+    catch(e){
+      this.computedPath = null
+    }
     this.generateHighlight()
     for (var i = 0; i < fetchData.MapEventListeners.length; i++){
       var f = fetchData.MapEventListeners[i]
@@ -186,6 +196,18 @@ export default class HomeScreen extends React.Component {
     )
   }
 
+  makePolyline(x, i){
+    return (
+      <Polyline
+        key={i}
+        points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
+        fill="none"
+        stroke="yellow"
+        strokeWidth="3"
+      />
+    )
+  }
+
   async generateMap(){ //render result map
     this.storeData = await this.storeData
     this.mapWidth = this.storeData.map.temporaryScale //a temporary hack while we work on more important things
@@ -217,6 +239,20 @@ export default class HomeScreen extends React.Component {
         shelfHighlight: null
       })
     }
+    try {
+      var idx = this.mapHighlight == null ? this.state.polygonMap.length : this.state.polygonMap.length + 1
+      let hil = this.makePolyline(this.computedPath, idx)
+      this.pathHighlight = hil
+      this.setState({
+        pathHighlight: hil
+      })
+    }
+    catch(e){
+      this.pathHighlight = null
+      this.setState({
+        pathHighlight: null
+      })
+    }
   }
 
   displaySearchResults(){ //called by stopAudioRecording
@@ -226,7 +262,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight})
     }
   }
 
@@ -433,6 +469,7 @@ export default class HomeScreen extends React.Component {
     let tedicator = this.textIndicator()
     let map = this.state.polygonMap
     let hil = this.state.shelfHighlight
+    let phi = this.state.pathHighlight
     let irecbutto = this.imageRecordingButton()
     return (
       <View style={styles.container}>
@@ -484,7 +521,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, "pathHighlightGetter": () => this.pathHighlight})
                 }
               />
               <Button
@@ -503,6 +540,7 @@ export default class HomeScreen extends React.Component {
               >
               {map}
               {hil}
+              {phi}
               </Svg>
             </View>
         </ScrollView>

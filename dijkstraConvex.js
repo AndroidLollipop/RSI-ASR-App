@@ -1,12 +1,5 @@
-var convexRegions = [
-  [[1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9]], //i know that this is a degenerate polygon
-  [[9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9]],
-  [[1, 2], [2, 2], [4, 2], [6, 2], [8, 2], [9, 2]],
-  [[1, 3], [2, 3], [4, 3], [6, 3], [8, 3], [9, 3], [9, 4], [8, 4], [6, 4], [4, 4], [2, 4], [1, 4]],
-  [[1, 5], [2, 5], [4, 5], [6, 5], [8, 5], [9, 5], [9, 6], [8, 6], [6, 6], [4, 6], [2, 6], [1, 6]],
-  [[1, 7], [2, 7], [4, 7], [6, 7], [8, 7], [9, 7], [9, 8], [8, 8], [6, 8], [4, 8], [2, 8], [1, 8]],
-  [[1, 9], [2, 9], [4, 9], [6, 9], [8, 9], [9, 9]]
-]
+var fetchData = require("./fetchData")
+var convexRegions
 //FORMAT: [ConvexPolygons:[Vertices:[x,y]]]
 var dijkWeights = []
 var xyNodeIDMap = []
@@ -35,10 +28,6 @@ var setDijkstraWeight = (v1, v2) => {
   var v2 = getNodeID(v2)
   dijkWeights[v1 * nodeID + v2] = d
 }
-convexRegions.map(x => x.map(getNodeID))
-nodeID++ //accomodate the extra node
-dijkWeights = new Array(nodeID * nodeID)
-convexRegions.map(x => x.map(y => x.map(x => setDijkstraWeight(x, y))))
 //not the fastest dijkstra, i didn't bother to implement a priority queue
 var dijkPred = []
 var dijkDist = []
@@ -53,6 +42,9 @@ var setupDijkstra = (v1) => {
   dijkMark[v1] = 1
 }
 var dijkstra = (v1, v2) => {
+  if (v1[0] == v2[0] && v1[1] == v2[1]){
+    return v1
+  }
   var v1 = getNodeID(v1)
   if (v1 !== (nodeID - 1)) {
     setupDijkstra(v1)
@@ -133,4 +125,25 @@ var arbitraryStartDijkstra = ([x, y], v2) => {
     return dijkstra([x, y], v2)
   }
 }
-console.log(arbitraryStartDijkstra([1, 1], [2, 5]))
+var setup = (async () => {
+  convexRegions = (await fetchData.getStoreData()).map.convexRegions  
+  convexRegions.map(x => x.map(getNodeID))
+  nodeID++ //accomodate the extra node
+  dijkWeights = new Array(nodeID * nodeID)
+  convexRegions.map(x => x.map(y => x.map(x => setDijkstraWeight(x, y))))
+})()
+var coorClamp = ([x, y]) => {
+  if (x > 1 && x < 9) {
+    if ((y > 2 && y < 3) || (y > 4 && y < 5) || (y > 6 && y < 7) || (y > 8 && y < 9)){
+      y = Math.round(y)
+    }
+  }
+  return [x, y]
+}
+var wrappedDijkstra = async (v1, v2) => {
+  await setup
+  return arbitraryStartDijkstra(coorClamp(v1), v2)
+}
+var exports = module.exports = {
+  dijkstra: wrappedDijkstra
+}
