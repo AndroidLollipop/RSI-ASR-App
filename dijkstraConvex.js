@@ -45,6 +45,8 @@ var dijkPred = []
 var dijkDist = []
 var dijkMark = []
 var setupDijkstra = (v1) => {
+  dijkDist = []
+  dijkMark = []
   for (var i = 0; i < nodeID; i++) {
     dijkDist[i] = dijkWeights[v1 * nodeID + i] !== undefined ? dijkWeights[v1 * nodeID + i] : Infinity
     dijkPred[i] = v1
@@ -53,7 +55,9 @@ var setupDijkstra = (v1) => {
 }
 var dijkstra = (v1, v2) => {
   var v1 = getNodeID(v1)
-  setupDijkstra(v1)
+  if (v1 !== (nodeID - 1)) {
+    setupDijkstra(v1)
+  }
   var v2 = getNodeID(v2)
   while (true) {
     var min = 0
@@ -83,9 +87,50 @@ var dijkstra = (v1, v2) => {
     }
   }
 }
-var namelessSoul = (v1) => {
-  //the plan:
-  //insert node and connect to lineofsight nodes
-  //to do this for general maps we need to check every edge and every node
+var includedRegions = ([x, y]) => { //i know this would make more sense as (x, y), but i'm following the [x, y] convention i set in this file
+  var ret = []
+  if (x <= 1) {
+    ret.push(convexRegions[0])
+  }
+  else if (x >= 9) {
+    ret.push(convexRegions[1])
+  }
+  if (y <= 2) {
+    ret.push(convexRegions[2])
+  }
+  else if (y >= 3 && y <= 4) {
+    ret.push(convexRegions[3])
+  }
+  else if (y >= 5 && y <= 6) {
+    ret.push(convexRegions[4])
+  }
+  else if (y >= 7 && y <= 8) {
+    ret.push(convexRegions[5])
+  }
+  else if (y >= 9) {
+    ret.push(convexRegions[6])
+  }
+  return ret
 }
-console.log(dijkstra([1, 2], [2, 5]))
+var arbitraryStartDijkstra = ([x, y], v2) => {
+  if ((xyNodeIDMap[x] == undefined && (xyNodeIDMap[x] = [])) || xyNodeIDMap[x][y] == undefined) { //thanks to operator short circuiting we don't have to worry about xyNodeIDMap[x][y] throwing
+    //insert node and connect to line of sight nodes
+    //only works for this map
+    xyNodeIDMap[x][y] = nodeID - 1
+    nodeIDxyMap[nodeID - 1] = [x, y]
+    dijkMark[nodeID - 1] = 1
+    var convex = includedRegions([x, y])
+    dijkDist = []
+    for (var i = 0; i < nodeID; i++) {
+      dijkDist[i] = Infinity
+    }
+    convex.map(a => a.map(a => { dijkDist[getNodeID(a)] = dist([x, y], a); dijkPred[getNodeID(a)] = (nodeID - 1) }))
+    var ret = dijkstra([x, y], v2)
+    xyNodeIDMap[x][y] = undefined
+    return ret
+  }
+  else {
+    return dijkstra([x, y], v2)
+  }
+}
+console.log(arbitraryStartDijkstra([1, 1], [2, 5]))
