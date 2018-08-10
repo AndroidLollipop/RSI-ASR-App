@@ -36,6 +36,7 @@ var setDijkstraWeight = (v1, v2) => {
   dijkWeights[v1 * nodeID + v2] = d
 }
 convexRegions.map(x => x.map(getNodeID))
+nodeID++ //accomodate the extra node
 dijkWeights = new Array(nodeID * nodeID)
 convexRegions.map(x => x.map(y => x.map(x => setDijkstraWeight(x, y))))
 console.log(dijkWeights)
@@ -81,5 +82,10 @@ var dijkstra = (v1, v2) => {
       }
     }
   }
+}
+var namelessSoul = (v1) => {
+  //the plan:
+  //insert node and connect to lineofsight nodes
+  //to do this for general maps we need to check every edge and every node
 }
 console.log(dijkstra([1, 2], [2, 5]))
