@@ -70,6 +70,9 @@ var dijkstra = (v1, v2) => {
       }
       return ret
     }
+    if (dijkMark[min]) {
+      return
+    }
     dijkMark[min] = 1
     for (var i = 0; i < nodeID; i++) {
       if ((dijkDist[min] + dijkWeights[min * nodeID + i]) < dijkDist[i]) {
