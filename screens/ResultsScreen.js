@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Button, Dimensions } from 'react-native';
+import { ScrollView, StyleSheet, Button, Dimensions, TouchableOpacity } from 'react-native';
 
 import Svg,{
   Circle,
@@ -72,14 +72,19 @@ export default class ResultsScreen extends React.Component {
           }
         />
         {this.state.cells}
-        <Svg
-          height={this.width}
-          width={this.width}
-        >
-        {this.state.myMap}
-        {this.state.myHighlight}
-        {this.state.myPathHighlight}
-        </Svg>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={this.props.navigation.state.params.mapCanvasOP}
+          >
+          <Svg
+            height={this.width}
+            width={this.width}
+          >
+          {this.state.myMap}
+          {this.state.myHighlight}
+          {this.state.myPathHighlight}
+          </Svg>
+        </TouchableOpacity>
       </ScrollView>
     );
   }

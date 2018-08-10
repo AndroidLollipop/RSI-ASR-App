@@ -69,6 +69,8 @@ export default class HomeScreen extends React.Component {
     let {height, width} = Dimensions.get("window")
     this.height = height
     this.width = width
+    this.location = [0.1, 0.1] //absolute. the reason we do this is to avoid waiting for storeData
+    this.selectedItem = null;
   }
   static navigationOptions = {
     title: "Home",
@@ -137,6 +139,10 @@ export default class HomeScreen extends React.Component {
   }
 
   async renderItemOP(x){
+    if (x == null){
+      return
+    } //the purpose of this is to prevent renderItemOP from waiting on this.mapRenderComplete when called with null
+    this.selectedItem = x
     try{
       fetchData.StateData.SelectedShelf = (await this.storeData)["map"]["shelfMap"][x.shelfLocation][x.shelfColumn]
     }
@@ -145,7 +151,11 @@ export default class HomeScreen extends React.Component {
     }
     await this.mapRenderComplete
     try{
-      this.computedPath = await dijkstraConvex.dijkstra([1, 1], (await this.storeData)["map"]["shelfAssociates"][x.shelfLocation][x.shelfColumn])
+      let des = (await this.storeData)["map"]["shelfAssociates"][x.shelfLocation][x.shelfColumn]
+      if (des == undefined){
+        throw "undefined destination"
+      }
+      this.computedPath = await dijkstraConvex.dijkstra(this.location.map(x => x*this.mapWidth), (await this.storeData)["map"]["shelfAssociates"][x.shelfLocation][x.shelfColumn])
     }
     catch(e){
       this.computedPath = null
@@ -157,6 +167,11 @@ export default class HomeScreen extends React.Component {
         f()
       }
     }
+  }
+
+  async mapCanvasOP(x){
+    this.location = [x.nativeEvent.locationX/this.width, 1-x.nativeEvent.locationY/this.width]
+    this.renderItemOP(this.selectedItem)
   }
 
   renderItem(x, i){ //render each cell
@@ -202,7 +217,7 @@ export default class HomeScreen extends React.Component {
         key={i}
         points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
         fill="none"
-        stroke="yellow"
+        stroke="red"
         strokeWidth="3"
       />
     )
@@ -262,7 +277,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this)})
     }
   }
 
@@ -521,7 +536,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, "pathHighlightGetter": () => this.pathHighlight})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, "pathHighlightGetter": () => this.pathHighlight, "mapCanvasOP": this.mapCanvasOP.bind(this)})
                 }
               />
               <Button
@@ -534,14 +549,19 @@ export default class HomeScreen extends React.Component {
               <View style={styles.welcomeContainer}>
                 <Text>{"Map, map, I'm a map"}</Text>
               </View>
-              <Svg
-                height={this.width}
-                width={this.width}
-              >
-              {map}
-              {hil}
-              {phi}
-              </Svg>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={this.mapCanvasOP.bind(this)}
+                >
+                <Svg
+                  height={this.width}
+                  width={this.width}
+                >
+                {map}
+                {hil}
+                {phi}
+                </Svg>
+              </TouchableOpacity>
             </View>
         </ScrollView>
       </View>
