@@ -39,7 +39,6 @@ convexRegions.map(x => x.map(getNodeID))
 nodeID++ //accomodate the extra node
 dijkWeights = new Array(nodeID * nodeID)
 convexRegions.map(x => x.map(y => x.map(x => setDijkstraWeight(x, y))))
-console.log(dijkWeights)
 //not the fastest dijkstra, i didn't bother to implement a priority queue
 var dijkPred = []
 var dijkDist = []
@@ -118,6 +117,7 @@ var arbitraryStartDijkstra = ([x, y], v2) => {
     //only works for this map
     xyNodeIDMap[x][y] = nodeID - 1
     nodeIDxyMap[nodeID - 1] = [x, y]
+    dijkMark = []
     dijkMark[nodeID - 1] = 1
     var convex = includedRegions([x, y])
     dijkDist = []
