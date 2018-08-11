@@ -31,7 +31,7 @@ export default class ResultsScreen extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {myMap: false, cells: false, myHighlight: false, myPathHighlight: false}
+    this.state = {myMap: false, cells: false, myHighlight: false, myPathHighlight: false, myLocHighlight: false}
     this.listenerIndex = null;
     this.listenerIndey = null;
     let {height, width} = Dimensions.get("window");
@@ -40,16 +40,18 @@ export default class ResultsScreen extends React.Component {
   }
 
   async componentDidMount(){
-    this.listenerIndex = fetchData.MapEventListeners.push(() => {let hil = this.props.navigation.state.params.highlightGetter(); let phi = this.props.navigation.state.params.pathHighlightGetter(); this.setState({myHighlight: hil, myPathHighlight: phi})})-1
+    this.listenerIndex = fetchData.MapEventListeners.push(() => {let hil = this.props.navigation.state.params.highlightGetter(); let phi = this.props.navigation.state.params.pathHighlightGetter(); let loc = this.props.navigation.state.params.locHighlightGetter(); this.setState({myHighlight: hil, myPathHighlight: phi, myLocHighlight: loc})})-1
     this.listenerIndey = fetchData.RefEventListeners.push(async (stageCompletion) => {let cells = await this.props.navigation.state.params.cellsGetter(stageCompletion); this.setState({cells: cells})})-1
     let cells = this.props.navigation.state.params.resultcells
     let map = this.props.navigation.state.params.mapGenerator()
     let hil = this.props.navigation.state.params.highlightGetter()
     let phi = this.props.navigation.state.params.pathHighlightGetter()
+    let loc = this.props.navigation.state.params.locHighlightGetter()
     this.setState({
       cells: cells,
       myHighlight: hil,
-      myPathHighlight: phi
+      myPathHighlight: phi,
+      myLocHighlight: loc
     })
     this.setState({
       myMap: await map,
@@ -83,6 +85,7 @@ export default class ResultsScreen extends React.Component {
           {this.state.myMap}
           {this.state.myHighlight}
           {this.state.myPathHighlight}
+          {this.state.myLocHighlight}
           </Svg>
         </TouchableOpacity>
       </ScrollView>

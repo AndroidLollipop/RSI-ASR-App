@@ -52,7 +52,7 @@ var dijkstraConvex = require("../dijkstraConvex")
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {shelfHighlight: null, pathHighlight: null, animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
+    this.state = {shelfHighlight: null, pathHighlight: null, locHighlight: null, animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
     this.searchRanker = null;
     this.storeData = null;
     this.asrText = null;
@@ -66,6 +66,7 @@ export default class HomeScreen extends React.Component {
     this.mapHighlight = null;
     this.pathHighlight = null;
     this.computedPath = null;
+    this.locHighlight = null;
     let {height, width} = Dimensions.get("window")
     this.height = height
     this.width = width
@@ -77,6 +78,13 @@ export default class HomeScreen extends React.Component {
   };
 
   componentWillMount(){ //componentWillMount runs immediately before this component starts rendering for the first time
+    if (this.location){
+      let loc = this.makeCircle()
+      this.locHighlight = loc
+      this.setState({
+        locHighlight: loc
+      })
+    }
     this.searchRanker = this.getRanker()
     this.storeData = fetchData.getStoreData()
     this.mapRenderComplete = this.generateMap.bind(this)()
@@ -139,9 +147,6 @@ export default class HomeScreen extends React.Component {
   }
 
   async renderItemOP(x){
-    if (x == null){
-      return
-    } //the purpose of this is to prevent renderItemOP from waiting on this.mapRenderComplete when called with null
     this.selectedItem = x
     try{
       fetchData.StateData.SelectedShelf = (await this.storeData)["map"]["shelfMap"][x.shelfLocation][x.shelfColumn]
@@ -171,6 +176,11 @@ export default class HomeScreen extends React.Component {
 
   async mapCanvasOP(x){
     this.location = [x.nativeEvent.locationX/this.width, 1-x.nativeEvent.locationY/this.width]
+    let loc = this.makeCircle()
+    this.locHighlight = loc
+    this.setState({
+      locHighlight: loc
+    })
     this.renderItemOP(this.selectedItem)
   }
 
@@ -199,10 +209,9 @@ export default class HomeScreen extends React.Component {
     )
   }
 
-  makeHighlight(x, i){
+  makeHighlight(x){
     return (
       <Polygon
-        key={i}
         points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
         fill="red"
         stroke="purple"
@@ -211,14 +220,26 @@ export default class HomeScreen extends React.Component {
     )
   }
 
-  makePolyline(x, i){
+  makePolyline(x){
     return (
       <Polyline
-        key={i}
         points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
         fill="none"
-        stroke="red"
+        stroke="blue"
         strokeWidth="3"
+      />
+    )
+  }
+
+  makeCircle(){
+    return (
+      <Circle
+        cx={this.location[0]*this.width}
+        cy={(1-this.location[1])*this.width}
+        r={this.width/50}
+        stroke="grey"
+        strokeWidth="1"
+        fill="blue"
       />
     )
   }
@@ -241,8 +262,7 @@ export default class HomeScreen extends React.Component {
   generateHighlight(){
     var savedSD = fetchData.StateData.SelectedShelf
     try {
-      let pma = this.state.polygonMap
-      let hil = this.makeHighlight(savedSD, pma.length)
+      let hil = this.makeHighlight(savedSD)
       this.mapHighlight = hil
       this.setState({
         shelfHighlight: hil
@@ -255,8 +275,7 @@ export default class HomeScreen extends React.Component {
       })
     }
     try {
-      var idx = this.mapHighlight == null ? this.state.polygonMap.length : this.state.polygonMap.length + 1
-      let hil = this.makePolyline(this.computedPath, idx)
+      let hil = this.makePolyline(this.computedPath)
       this.pathHighlight = hil
       this.setState({
         pathHighlight: hil
@@ -277,7 +296,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this)})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight})
     }
   }
 
@@ -485,6 +504,7 @@ export default class HomeScreen extends React.Component {
     let map = this.state.polygonMap
     let hil = this.state.shelfHighlight
     let phi = this.state.pathHighlight
+    let loc = this.state.locHighlight
     let irecbutto = this.imageRecordingButton()
     return (
       <View style={styles.container}>
@@ -536,7 +556,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this)})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight})
                 }
               />
               <Button
@@ -560,6 +580,7 @@ export default class HomeScreen extends React.Component {
                 {map}
                 {hil}
                 {phi}
+                {loc}
                 </Svg>
               </TouchableOpacity>
             </View>
