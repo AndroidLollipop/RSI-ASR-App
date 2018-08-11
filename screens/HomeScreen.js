@@ -147,6 +147,9 @@ export default class HomeScreen extends React.Component {
   }
 
   async renderItemOP(x){
+    if (x == null){
+      return
+    } //the purpose of this is to prevent renderItemOP from waiting on this.mapRenderComplete when called with null
     this.selectedItem = x
     try{
       fetchData.StateData.SelectedShelf = (await this.storeData)["map"]["shelfMap"][x.shelfLocation][x.shelfColumn]
@@ -178,6 +181,12 @@ export default class HomeScreen extends React.Component {
     this.location = [x.nativeEvent.locationX/this.width, 1-x.nativeEvent.locationY/this.width]
     let loc = this.makeCircle()
     this.locHighlight = loc
+    for (var i = 0; i < fetchData.MapEventListeners.length; i++){
+      var f = fetchData.MapEventListeners[i]
+      if (f){
+        f()
+      }
+    }
     this.setState({
       locHighlight: loc
     })
