@@ -1,8 +1,8 @@
 {
-  "expoServerPort": 19000,
-  "packagerPort": 19001,
-  "packagerPid": 12928,
-  "expoServerNgrokUrl": "https://7u-bxe.kingsotongxvi.automatic-shoe-recognition.exp.direct",
-  "packagerNgrokUrl": "https://packager.7u-bxe.kingsotongxvi.automatic-shoe-recognition.exp.direct",
-  "ngrokPid": 19244
+  "expoServerPort": null,
+  "packagerPort": null,
+  "packagerPid": null,
+  "expoServerNgrokUrl": null,
+  "packagerNgrokUrl": null,
+  "ngrokPid": null
 }

@@ -64,9 +64,9 @@ export default class ResultsScreen extends React.Component {
   }
 
   componentWillUnmount(){
+    this.mounted = false
     fetchData.MapEventListeners[this.listenerIndex] = undefined
     fetchData.RefEventListeners[this.listenerIndey] = undefined
-    this.mounted = false
   }
 
   render() {

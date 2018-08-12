@@ -192,7 +192,7 @@ var getStoreData = (refresh) => {
     var fakeNetworkRequest = new Promise(resolve => {
       setTimeout(() => {
         resolve(storeData);
-      }, 20000);
+      }, 2000);
     });
     if (!storeDataCache){
       storeDataCache = fakeNetworkRequest //we don't have any data yet
