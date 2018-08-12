@@ -177,7 +177,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  async mapCanvasOP(x){
+  mapCanvasOP(x){
     this.location = [x.nativeEvent.locationX/this.width, 1-x.nativeEvent.locationY/this.width]
     let loc = this.makeCircle()
     this.locHighlight = loc

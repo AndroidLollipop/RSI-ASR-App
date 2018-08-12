@@ -37,11 +37,12 @@ export default class ResultsScreen extends React.Component {
     let {height, width} = Dimensions.get("window");
     this.height = height;
     this.width = width;
+    this.mounted = true;
   }
 
   async componentDidMount(){
     this.listenerIndex = fetchData.MapEventListeners.push(() => {let hil = this.props.navigation.state.params.highlightGetter(); let phi = this.props.navigation.state.params.pathHighlightGetter(); let loc = this.props.navigation.state.params.locHighlightGetter(); this.setState({myHighlight: hil, myPathHighlight: phi, myLocHighlight: loc})})-1
-    this.listenerIndey = fetchData.RefEventListeners.push(async (stageCompletion) => {let cells = await this.props.navigation.state.params.cellsGetter(stageCompletion); this.setState({cells: cells})})-1
+    this.listenerIndey = fetchData.RefEventListeners.push(async (stageCompletion) => {let cells = await this.props.navigation.state.params.cellsGetter(stageCompletion); if(this.mounted) {this.setState({cells: cells})}})-1
     let cells = this.props.navigation.state.params.resultcells
     let map = this.props.navigation.state.params.mapGenerator()
     let hil = this.props.navigation.state.params.highlightGetter()
@@ -53,14 +54,19 @@ export default class ResultsScreen extends React.Component {
       myPathHighlight: phi,
       myLocHighlight: loc
     })
-    this.setState({
-      myMap: await map,
-    })
+    let myMap = await map
+    //this component may have unmounted while we were waiting for map
+    if (this.mounted) {
+      this.setState({
+        myMap: myMap,
+      })
+    }
   }
 
   componentWillUnmount(){
     fetchData.MapEventListeners[this.listenerIndex] = undefined
     fetchData.RefEventListeners[this.listenerIndey] = undefined
+    this.mounted = false
   }
 
   render() {
