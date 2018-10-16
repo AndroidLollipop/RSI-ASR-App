@@ -22,6 +22,10 @@ node_modules/
 .vs/
 .DS_Store
 
+# Cocoapods
+
+ios/Pods
+
 # =========================
 # Operating System Files
 # =========================
