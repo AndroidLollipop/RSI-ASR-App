@@ -47,10 +47,12 @@ var searchRanker = require("../searchRanker")
 
 var helperFunctions = require("../helperFunctions")
 
+var dijkstraConvex = require("../dijkstraConvex")
+
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
+    this.state = {shelfHighlight: null, pathHighlight: null, locHighlight: null, animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
     this.searchRanker = null;
     this.storeData = null;
     this.asrText = null;
@@ -58,23 +60,58 @@ export default class HomeScreen extends React.Component {
     this.rankingResults = null;
     this.startRecordingEnable = true;
     this.sstopRecordingEnable = false;
+    this.listenerIndex = null;
+    this.mapRenderComplete = null;
+    this.polygonMap = null;
+    this.mapHighlight = null;
+    this.pathHighlight = null;
+    this.computedPath = null;
+    this.locHighlight = null;
+    let {height, width} = Dimensions.get("window")
+    this.height = height
+    this.width = width
+    this.location = [0.1, 0.1] //absolute. the reason we do this is to avoid waiting for storeData
+    this.selectedItem = null;
   }
   static navigationOptions = {
     title: "Home",
   };
 
-  componentDidMount(){
-    this.generateMap.bind(this)()
+  componentWillMount(){ //componentWillMount runs immediately before this component starts rendering for the first time
+    if (this.location){
+      let loc = this.makeCircle()
+      this.locHighlight = loc
+      this.setState({
+        locHighlight: loc
+      })
+    }
+    this.searchRanker = this.getRanker()
+    this.storeData = fetchData.getStoreData()
+    this.mapRenderComplete = this.generateMap.bind(this)()
   }
 
-  async startAudioRecording(){
-    if (!this.startRecordingEnable){
+  componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
+    //the reason we (can, but) don't put this in componentWillMount is that only componentDidMount is guaranteed to be paired with componentWillUnmount
+    this.listenerIndex = fetchData.RefEventListeners.push(
+    async (stageCompletion, stageCompleter) => {
+      this.storeData = await fetchData.getStoreData()
+      this.searchRanker = await this.getRanker()
+      this.refreshSearchResults.bind(this)(stageCompleter)
+    })-1
+  }
+
+  componentWillUnmount(){
+    fetchData.RefEventListeners[this.listenerIndex] = undefined
+  }
+
+  async startAudioRecording(){ //start animations and start audio recording
+    if (!this.startRecordingEnable){ //this ensures that only 1 execution context can enter the following critical section at any time
       return
     }
     this.startRecordingEnable = false
-    await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+    await Permissions.askAsync(Permissions.AUDIO_RECORDING); //get user permission
     await Audio.setIsEnabledAsync(true);
-    await Audio.setAudioModeAsync({
+    await Audio.setAudioModeAsync({ //audio recording boilerplate straight from documentation
       allowsRecordingIOS: true,
       interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
       playsInSilentModeIOS: true,
@@ -88,10 +125,13 @@ export default class HomeScreen extends React.Component {
     } catch (error) {
       alert(error)
     }
-    this.setState({
+    this.setState({ //update button state
+      //we don't want to mislead the user by starting the animation and swapping the buttons before the recording actually begins
+      //the alternative would be to warm up a recording in the background and to truncate it to the appropriate length after the user ends a recording
+      //but the complexity of implementing that is not worth the 0.5 seconds it saves
       isRecording: true
     })
-    this.radialAnimation = Animated.loop(
+    this.radialAnimation = Animated.loop( //start the ripple
       Animated.timing(
         this.state.animatedOpacity,
         {
@@ -103,15 +143,62 @@ export default class HomeScreen extends React.Component {
       )
     )
     this.radialAnimation.start()
-    this.sstopRecordingEnable = true
+    this.sstopRecordingEnable = true //allow an execution context to enter the stop recording critical section
   }
 
-  renderItem(x, i){
-    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation}/>
+  async renderItemOP(x){
+    if (x == null){
+      return
+    } //the purpose of this is to prevent renderItemOP from waiting on this.mapRenderComplete when called with null
+    this.selectedItem = x
+    try{
+      fetchData.StateData.SelectedShelf = (await this.storeData)["map"]["shelfMap"][x.shelfLocation][x.shelfColumn]
+    }
+    catch(e){
+      fetchData.StateData.SelectedShelf = null
+    }
+    await this.mapRenderComplete
+    try{
+      let des = (await this.storeData)["map"]["shelfAssociates"][x.shelfLocation][x.shelfColumn]
+      if (des == undefined){
+        throw "undefined destination"
+      }
+      this.computedPath = await dijkstraConvex.dijkstra(this.location.map(x => x*this.mapWidth), (await this.storeData)["map"]["shelfAssociates"][x.shelfLocation][x.shelfColumn])
+    }
+    catch(e){
+      this.computedPath = null
+    }
+    this.generateHighlight()
+    for (var i = 0; i < fetchData.MapEventListeners.length; i++){
+      var f = fetchData.MapEventListeners[i]
+      if (f){
+        f()
+      }
+    }
   }
 
-  makeTableView(){
-    this.resultCells = this.rankingResults.map(this.renderItem)
+  mapCanvasOP(x){
+    this.location = [x.nativeEvent.locationX/this.width, 1-x.nativeEvent.locationY/this.width]
+    let loc = this.makeCircle()
+    this.locHighlight = loc
+    for (var i = 0; i < fetchData.MapEventListeners.length; i++){
+      var f = fetchData.MapEventListeners[i]
+      if (f){
+        f()
+      }
+    }
+    this.setState({
+      locHighlight: loc
+    })
+    this.renderItemOP(this.selectedItem)
+  }
+
+  renderItem(x, i){ //render each cell
+    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderItemOP.bind(this)(x)}/>
+  }
+
+  makeTableView(){ //create result table
+    this.resultCells = this.rankingResults.map(this.renderItem.bind(this))
     return <TableView>
       <Section>
         {this.resultCells}
@@ -119,12 +206,11 @@ export default class HomeScreen extends React.Component {
     </TableView>
   }
 
-  makePolygon(x, i){
-    console.log(x.map(x => x.map(x => x*this.width).join(",")).join(" "))
+  makePolygon(x, i){ //render each shelf
     return (
       <Polygon
         key={i}
-        points={x.map(x => x.map(x => x*this.width).join(",")).join(" ")}
+        points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
         fill="lime"
         stroke="purple"
         strokeWidth="1"
@@ -132,37 +218,117 @@ export default class HomeScreen extends React.Component {
     )
   }
 
-  async generateMap(){
+  makeHighlight(x){
+    return (
+      <Polygon
+        points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
+        fill="red"
+        stroke="purple"
+        strokeWidth="1"
+      />
+    )
+  }
+
+  makePolyline(x){
+    return (
+      <Polyline
+        points={x.map(x => [x[0], this.mapWidth-x[1]].map(x => x*this.width/this.mapWidth).join(",")).join(" ")}
+        fill="none"
+        stroke="blue"
+        strokeWidth="3"
+      />
+    )
+  }
+
+  makeCircle(){
+    return (
+      <Circle
+        cx={this.location[0]*this.width}
+        cy={(1-this.location[1])*this.width}
+        r={this.width/50}
+        stroke="grey"
+        strokeWidth="1"
+        fill="blue"
+      />
+    )
+  }
+
+  async generateMap(){ //render result map
     this.storeData = await this.storeData
-    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
+    this.mapWidth = this.storeData.map.temporaryScale //a temporary hack while we work on more important things
+    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this)) //formatting shelf data and mapping each shelf to a polygon
+    this.polygonMap = pma
     this.setState({
       polygonMap: pma
     })
   }
 
-  async secondScreenMapGenerator(){
-    this.storeData = await this.storeData
-    let pma = helperFunctions.flattenList(Object.values(this.storeData["map"]["shelfMap"])).map(this.makePolygon.bind(this))
-    return <Svg
-      height={this.width}
-      width={this.width}
-    >
-    {pma}
-    </Svg>
+  async getMap(){
+    await this.mapRenderComplete
+    return this.polygonMap
   }
 
-  displaySearchResults(){
+  generateHighlight(){
+    var savedSD = fetchData.StateData.SelectedShelf
+    try {
+      let hil = this.makeHighlight(savedSD)
+      this.mapHighlight = hil
+      this.setState({
+        shelfHighlight: hil
+      })
+    }
+    catch(e){
+      this.mapHighlight = null
+      this.setState({
+        shelfHighlight: null
+      })
+    }
+    try {
+      let hil = this.makePolyline(this.computedPath)
+      this.pathHighlight = hil
+      this.setState({
+        pathHighlight: hil
+      })
+    }
+    catch(e){
+      this.pathHighlight = null
+      this.setState({
+        pathHighlight: null
+      })
+    }
+  }
+
+  displaySearchResults(){ //called by stopAudioRecording
+    this.renderItemOP.bind(this)(this.rankingResults[0])
     var cells = this.makeTableView.bind(this)()
     this.setState({
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight})
     }
   }
 
+  async refreshResultCells(stageCompletion){
+    await stageCompletion
+    return this.state.cells
+  }
+
+  async refreshSearchResults(stageCompleter){
+    if (!this.rankingResults){
+      stageCompleter()
+      return
+    }
+    this.rankingResults = (await this.searchRanker)(this.asrText)
+    var cells = this.makeTableView.bind(this)()
+    this.setState({
+      cells: cells
+    })
+    stageCompleter()
+  }
+
   async stopAudioRecording(){
-    if (!this.sstopRecordingEnable){
+    if (!this.sstopRecordingEnable){ //this ensures that only 1 execution context can enter the following critical section at any time
       return
     }
     this.sstopRecordingEnable = false
@@ -175,7 +341,7 @@ export default class HomeScreen extends React.Component {
     //wait for rerender to complete before proceeding to prevent stuttering
     await this.recording.stopAndUnloadAsync();
     const rec = this.recording
-    this.startRecordingEnable = true
+    this.startRecordingEnable = true //allow an execution context to enter the start audio recording critical section
     const recuri = rec.getURI()
     const info = await FileSystem.getInfoAsync(recuri)
     const { sound, status } = await rec.createNewLoadedSound()
@@ -185,7 +351,7 @@ export default class HomeScreen extends React.Component {
     })
     var [asr, ran, storeData] = await Promise.all([fetchData.getAsrText(recuri), this.searchRanker, this.storeData]);
     this.asrText = asr
-    for (var i = 0; i < fetchData.AsrEventListeners.length; i++){
+    for (var i = 0; i < fetchData.AsrEventListeners.length; i++){ //updates accuracycheck screen
       var f = fetchData.AsrEventListeners[i]
       if (f){
         f()
@@ -193,16 +359,14 @@ export default class HomeScreen extends React.Component {
     }
     this.searchRanker = ran
     this.storeData = storeData
-    //why this weird deconstructor promise syntax?
-    //believe it or not, this is basically the only way to get 2 promises to resolve simultaneously in a single asynchronous function!
-    this.setState({
+    this.setState({ //enable playback controls
       asrLoaded: true
     })
-    this.rankingResults = ran(asr)
-    this.displaySearchResults.bind(this)()
+    this.rankingResults = ran(asr) //get search rankings
+    this.displaySearchResults.bind(this)() //display search results
   }
 
-  async startPlaying(){
+  async startPlaying(){ //debug control, will be removed in final app
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
       interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
@@ -220,20 +384,20 @@ export default class HomeScreen extends React.Component {
     return searchRanker.getRanker()
   }
 
-  stopPlaying(){
+  stopPlaying(){ //debug control, will be removed in final app
     this.sound.stopAsync();
     this.setState({
       audioPlaying: false
     })
   }
 
-  swapScreen(){
+  swapScreen(){ //debug option, will be removed in final app
     this.setState({
       nextScreen: !this.state.nextScreen
     })
   }
 
-  recordingIndicator(){
+  recordingIndicator(){ //ui
     if (this.state.isRecording){
       return <Text>Recording</Text>
     }
@@ -242,7 +406,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  imageRecordingButton(){
+  imageRecordingButton(){ //ui
     if (!this.state.isRecording){
       return <TouchableHighlight
         onPress={this.startAudioRecording.bind(this)}
@@ -259,8 +423,8 @@ export default class HomeScreen extends React.Component {
         style={{height: 250, width: 250, borderRadius: 125}}>
         <View>
           <Animated.Image
-            style={{opacity: Animated.add(6, Animated.multiply(this.state.animatedOpacity, -5)), width: 250, height: 250, position: "absolute", left: 0, top: 0, transform: [{scale: this.state.animatedOpacity}]}}
-            source={fetchData.Images.recording}
+            style={{opacity: Animated.add(6, Animated.multiply(this.state.animatedOpacity, -5)), width: 250, height: 250, left: 0, top: 0, transform: [{scale: this.state.animatedOpacity}]}}
+            source={fetchData.Images.animationRipple}
             />
           <Image
             style={{width: 250, height: 250, position: "absolute", left: 0, top: 0}}
@@ -271,7 +435,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  recordingButton(){
+  recordingButton(){ //ui
     if (!this.state.isRecording){
       return <Button
         onPress={this.startAudioRecording.bind(this)}
@@ -288,7 +452,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  playbackButton(){
+  playbackButton(){ //ui
     if (this.state.soundLoaded){
       if (this.state.audioPlaying){
         return <Button
@@ -307,7 +471,7 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  resultButton(){
+  resultButton(){ //ui
     if (this.state.nextScreen){
       return <Button
         onPress={this.swapScreen.bind(this)}
@@ -324,20 +488,20 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  textIndicator(){
+  textIndicator(){ //ui
     if (this.state.asrLoaded){
       return <Text>{this.asrText}</Text>
     }
   }
 
-  updateServerURL(text){
+  updateServerURL(text){ //server selection, will be removed in final app
     this.setState({
       serverURL: text
     })
     fetchData.StateData.ServerURL = text
   }
 
-  render() {
+  render() { //ui
     const { navigate } = this.props.navigation
     this.navigateto = navigate
     let animatedOpacity = this.state.animatedOpacity
@@ -346,15 +510,11 @@ export default class HomeScreen extends React.Component {
     let playback = this.playbackButton()
     let rebutton = this.resultButton()
     let tedicator = this.textIndicator()
-    this.searchRanker = this.getRanker()
-    this.storeData = fetchData.getStoreData()
     let map = this.state.polygonMap
-    let {height, width} = Dimensions.get("window")
+    let hil = this.state.shelfHighlight
+    let phi = this.state.pathHighlight
+    let loc = this.state.locHighlight
     let irecbutto = this.imageRecordingButton()
-    this.height = height
-    this.width = width
-    //YES, WE WILL EVENTUALLY IMPLEMENT CACHING
-    //NOT NOW THO FOR TESTING PURPOSES
     return (
       <View style={styles.container}>
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
@@ -388,9 +548,24 @@ export default class HomeScreen extends React.Component {
               </View>
               {rebutton}
               <Button
+                onPress={() => {this.renderItemOP.bind(this)({})}}
+                title="Clear map highlight"
+                color="#841584"
+              />
+              <Button
+                onPress={fetchData.fupdate}
+                title="Fake update"
+                color="#841584"
+              />
+              <Button
+                onPress={() => {fetchData.toggleInterval(); this.setState({})}}
+                title={fetchData.intervalActive() ? "Disable refresh interval" : "Enable refresh interval"}
+                color="#841584"
+              />
+              <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'mapGenerator': this.secondScreenMapGenerator.bind(this), 'asrTextGetter': () => this.asrText})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight})
                 }
               />
               <Button
@@ -403,12 +578,20 @@ export default class HomeScreen extends React.Component {
               <View style={styles.welcomeContainer}>
                 <Text>{"Map, map, I'm a map"}</Text>
               </View>
-              <Svg
-                height={this.width}
-                width={this.width}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={this.mapCanvasOP.bind(this)}
               >
-              {map}
-              </Svg>
+                <Svg
+                  height={this.width}
+                  width={this.width}
+                >
+                {map}
+                {hil}
+                {phi}
+                {loc}
+                </Svg>
+              </TouchableOpacity>
             </View>
         </ScrollView>
       </View>
@@ -416,7 +599,7 @@ export default class HomeScreen extends React.Component {
   }
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({ //stylesheet
   container: {
     flex: 1,
     backgroundColor: '#fff',
