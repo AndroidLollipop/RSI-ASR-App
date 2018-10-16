@@ -1,5 +1,5 @@
-var fetchData = require("./fetchData");
-var computeTfIdfs = (tagcollection, tf_, idf) => {
+var fetchData = require("./fetchData")
+var computeTfIdfs = (tagcollection, tf_, idf) => { //tf-idf implemented directly according to wikipedia's description of tf-idf
   //we have to iterate through all tags anyway to compute any single tfidf, no point using lazy computation
   //just get it done once and never do it again until the next inventory update
   //if we are brave and adventurous we can try using delta updates and delta'ing the tfidf cache
@@ -66,7 +66,7 @@ var makeRanker = (data) => {
   }
 }
 var getRanker = async () => {
-  storeData = await fetchData.getStoreData();
+  storeData = await fetchData.getStoreData()
   return makeRanker(storeData)
 }
 module.exports = {
