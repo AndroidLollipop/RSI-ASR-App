@@ -20,7 +20,7 @@ $RECYCLE.BIN/
 
 node_modules/
 .vs/
-.DS_Store
+*.DS_Store
 
 # Cocoapods
 
