@@ -102,10 +102,6 @@ PODS:
   - lottie-ios (2.1.5)
   - React (0.55.2):
     - React/Core (= 0.55.2)
-  - react-native-ble-plx (1.0.0):
-    - React
-    - react-native-ble-plx-swift
-  - react-native-ble-plx-swift (1.0.0)
   - React/ART (0.55.2):
     - React/Core
   - React/Core (0.55.2):
@@ -164,8 +160,6 @@ DEPENDENCIES:
   - ExpoKit/GL (from `http://github.com/expo/expo.git`, tag `ios/2.5.10`)
   - Folly (from `../node_modules/react-native/third-party-podspecs/Folly.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
-  - react-native-ble-plx (from `../node_modules/react-native-ble-plx`)
-  - react-native-ble-plx-swift (from `../node_modules/react-native-ble-plx`)
   - React/ART (from `../node_modules/react-native`)
   - React/Core (from `../node_modules/react-native`)
   - React/CxxBridge (from `../node_modules/react-native`)
@@ -221,10 +215,6 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   React:
     :path: "../node_modules/react-native"
-  react-native-ble-plx:
-    :path: "../node_modules/react-native-ble-plx"
-  react-native-ble-plx-swift:
-    :path: "../node_modules/react-native-ble-plx"
   yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -264,10 +254,8 @@ SPEC CHECKSUMS:
   JKBigInteger2: e91672035c42328c48b7dd015b66812ddf40ca9b
   lottie-ios: 836cdbba92f62f3c6a00e37a4ce485321fe317cf
   React: 977e1cdf18a3047a35d321b34ffb678d79d19076
-  react-native-ble-plx: 7ad27c5a97bdb07ca77cf92badacd990e350c32c
-  react-native-ble-plx-swift: 283d93356064625d8d825b0814203628afe381f0
   yoga: a23273df0088bf7f2bb7e5d7b00044ea57a2a54a
 
-PODFILE CHECKSUM: effc2b6c408d75c6c7be3a038bd17a4f1ad9c3b6
+PODFILE CHECKSUM: 84c9d9318a72ea3debc22a4c6debd4ff8dab8b0b
 
 COCOAPODS: 1.5.3
