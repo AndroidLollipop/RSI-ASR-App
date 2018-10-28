@@ -37,7 +37,7 @@ export default class SparseScreen extends React.Component {
   render() {
     return (
       <ScrollView style={styles.container}>
-        {this.props.navigation.state.params.resultcells}
+        {this.props.navigation.state.params.cells}
       </ScrollView>
     );
   }

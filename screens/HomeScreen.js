@@ -210,8 +210,8 @@ export default class HomeScreen extends React.Component {
     return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderItemOP.bind(this)(x)}/>
   }
 
-  renderRec = (navigate) => (x, i) => {
-    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderRecOP.bind(this)(navigate)(x)}/>
+  renderRec = (navigator) => (x, i) => {
+    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderRecOP.bind(this)(navigator)(x)}/>
   }
 
   makeTableView(){ //create result table

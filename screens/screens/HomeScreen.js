@@ -45,6 +45,8 @@ var fetchData = require("../fetchData");
 
 var searchRanker = require("../searchRanker")
 
+var recommender = require("../recommender")
+
 var helperFunctions = require("../helperFunctions")
 
 var dijkstraConvex = require("../dijkstraConvex")
@@ -54,6 +56,7 @@ export default class HomeScreen extends React.Component {
     super(props);
     this.state = {shelfHighlight: null, pathHighlight: null, locHighlight: null, animatedOpacity: new Animated.Value(1), isRecording: false, soundLoaded: false, audioPlaying: false, nextScreen: true, asrLoaded: false, cells: false, polygonMap: false, serverURL: fetchData.StateData.ServerURL};
     this.searchRanker = null;
+    this.recommender = null;
     this.storeData = null;
     this.asrText = null;
     this.resultCells = null;
@@ -72,6 +75,7 @@ export default class HomeScreen extends React.Component {
     this.width = width
     this.location = [0.1, 0.1] //absolute. the reason we do this is to avoid waiting for storeData
     this.selectedItem = null;
+    this.mounted = false;
   }
   static navigationOptions = {
     title: "Home",
@@ -86,6 +90,7 @@ export default class HomeScreen extends React.Component {
       })
     }
     this.searchRanker = this.getRanker()
+    this.recommender = this.getRecommender()
     this.storeData = fetchData.getStoreData()
     this.mapRenderComplete = this.generateMap.bind(this)()
   }
@@ -96,12 +101,15 @@ export default class HomeScreen extends React.Component {
     async (stageCompletion, stageCompleter) => {
       this.storeData = await fetchData.getStoreData()
       this.searchRanker = await this.getRanker()
+      this.recommender = await this.getRecommender()
       this.refreshSearchResults.bind(this)(stageCompleter)
     })-1
+    this.mounted = true
   }
 
   componentWillUnmount(){
     fetchData.RefEventListeners[this.listenerIndex] = undefined
+    this.mounted = false
   }
 
   async startAudioRecording(){ //start animations and start audio recording
@@ -177,6 +185,11 @@ export default class HomeScreen extends React.Component {
     }
   }
 
+  renderRecOP = (navigator) => async (x) => {
+    await this.renderItemOP.bind(this)(x)
+    navigator.goBack(null)
+  }
+
   mapCanvasOP(x){
     this.location = [x.nativeEvent.locationX/this.width, 1-x.nativeEvent.locationY/this.width]
     let loc = this.makeCircle()
@@ -197,11 +210,23 @@ export default class HomeScreen extends React.Component {
     return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderItemOP.bind(this)(x)}/>
   }
 
+  renderRec = (navigator) => (x, i) => {
+    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderRecOP.bind(this)(navigator)(x)}/>
+  }
+
   makeTableView(){ //create result table
     this.resultCells = this.rankingResults.map(this.renderItem.bind(this))
     return <TableView>
       <Section>
         {this.resultCells}
+      </Section>
+    </TableView>
+  }
+
+  makeRecTable = (navigator) => (recommendations) => {
+    return <TableView>
+      <Section>
+        {recommendations.map(this.renderRec.bind(this)(navigator))}
       </Section>
     </TableView>
   }
@@ -305,7 +330,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight, 'getRec': this.getRec.bind(this)})
     }
   }
 
@@ -382,6 +407,10 @@ export default class HomeScreen extends React.Component {
 
   getRanker(){
     return searchRanker.getRanker()
+  }
+
+  getRecommender(){
+    return recommender.getRecommender()
   }
 
   stopPlaying(){ //debug control, will be removed in final app
@@ -501,6 +530,17 @@ export default class HomeScreen extends React.Component {
     fetchData.StateData.ServerURL = text
   }
 
+  getRec = (navigator) => async () => {
+    if (this.selectedItem == null) {
+      return
+    }
+    this.recommender = await this.recommender
+    if (!this.mounted) {
+      return
+    }
+    navigator.navigate('Sparse', {'name': 'Recommendations', 'cells': this.makeRecTable.bind(this)(navigator)(this.recommender(this.selectedItem))})
+  }
+
   render() { //ui
     const { navigate } = this.props.navigation
     this.navigateto = navigate
@@ -565,7 +605,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight, 'getRec': this.getRec.bind(this)})
                 }
               />
               <Button
@@ -574,6 +614,10 @@ export default class HomeScreen extends React.Component {
                   navigate('Accuracy', {'name': 'Check Accuracy', 'asrTextGetter': () => this.asrText})
                 }
               />
+              {this.state.nextScreen ? false : <Button
+                title="Get Recommendations"
+                onPress={this.getRec(this.props.navigation).bind(this)}
+              />}
               {this.state.nextScreen ? false : this.state.cells}
               <View style={styles.welcomeContainer}>
                 <Text>{"Map, map, I'm a map"}</Text>
