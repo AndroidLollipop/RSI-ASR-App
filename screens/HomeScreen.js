@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import {
   Image,
   Platform,
@@ -12,7 +12,8 @@ import {
   Easing,
   View,
   Button,
-  Dimensions
+  Dimensions,
+  DeviceEventEmitter
 } from 'react-native';
 import { WebBrowser, Audio, Permissions, FileSystem } from 'expo';
 
@@ -40,6 +41,13 @@ import Svg,{
     Defs,
     Stop
 } from 'react-native-svg';
+
+// begin native imports
+
+import Kontakt from 'react-native-kontaktio';
+const { connect, startScanning } = Kontakt;
+
+// end native imports
 
 var fetchData = require("../fetchData");
 
@@ -105,6 +113,25 @@ export default class HomeScreen extends React.Component {
       this.refreshSearchResults.bind(this)(stageCompleter)
     })-1
     this.mounted = true
+
+    // begin native dependents
+
+    /*connect()
+      .then(() => startScanning())
+      .catch(error => console.log('error', error));
+
+    DeviceEventEmitter.addListener(
+      'beaconsDidUpdate',
+      ({ beacons, region }) => {
+        console.log('beaconsDidUpdate', beacons, region);
+      },
+    );*/
+
+    console.log("connect is")
+    console.log(connect)
+
+    //end native dependents
+
   }
 
   componentWillUnmount(){
