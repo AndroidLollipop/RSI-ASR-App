@@ -79,6 +79,10 @@ export default class ResultsScreen extends React.Component {
             navigate('Accuracy', {'name': 'Check Accuracy', 'asrTextGetter': this.props.navigation.state.params.asrTextGetter})
           }
         />
+        <Button
+          title="Get Recommendations"
+          onPress={this.props.navigation.state.params.getRec(this.props.navigation)}
+        />
         {this.state.cells}
         <TouchableOpacity
           activeOpacity={1}

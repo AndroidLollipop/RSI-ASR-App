@@ -185,9 +185,9 @@ export default class HomeScreen extends React.Component {
     }
   }
 
-  async renderRecOP(x) {
+  renderRecOP = (navigator) => async (x) => {
     await this.renderItemOP.bind(this)(x)
-    this.props.navigation.goBack(null)
+    navigator.goBack(null)
   }
 
   mapCanvasOP(x){
@@ -210,8 +210,8 @@ export default class HomeScreen extends React.Component {
     return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderItemOP.bind(this)(x)}/>
   }
 
-  renderRec(x, i){
-    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderRecOP.bind(this)(x)}/>
+  renderRec = (navigate) => (x, i) => {
+    return <Cell key={i} cellStyle="RightDetail" title={x.itemName} detail={x.friendlyLocation} onPress = {() => this.renderRecOP.bind(this)(navigate)(x)}/>
   }
 
   makeTableView(){ //create result table
@@ -223,10 +223,10 @@ export default class HomeScreen extends React.Component {
     </TableView>
   }
 
-  makeRecTable(recommendations){
+  makeRecTable = (navigator) => (recommendations) => {
     return <TableView>
       <Section>
-        {recommendations.map(this.renderRec.bind(this))}
+        {recommendations.map(this.renderRec.bind(this)(navigator))}
       </Section>
     </TableView>
   }
@@ -330,7 +330,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight, 'getRec': this.getRec.bind(this)})
     }
   }
 
@@ -530,6 +530,17 @@ export default class HomeScreen extends React.Component {
     fetchData.StateData.ServerURL = text
   }
 
+  getRec = (navigator) => async () => {
+    if (this.selectedItem == null) {
+      return
+    }
+    this.recommender = await this.recommender
+    if (!this.mounted) {
+      return
+    }
+    navigator.navigate('Sparse', {'name': 'Recommendations', 'cells': this.makeRecTable.bind(this)(navigator)(this.recommender(this.selectedItem))})
+  }
+
   render() { //ui
     const { navigate } = this.props.navigation
     this.navigateto = navigate
@@ -594,7 +605,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight, 'getRec': this.getRec.bind(this)})
                 }
               />
               <Button
@@ -605,17 +616,7 @@ export default class HomeScreen extends React.Component {
               />
               {this.state.nextScreen ? false : <Button
                 title="Get Recommendations"
-                onPress={async () => {
-                  if (this.selectedItem == null) {
-                    return
-                  }
-                  this.recommender = await this.recommender
-                  if (!this.mounted) {
-                    return
-                  }
-                  navigate('Sparse', {'name': 'Recommendations', 'cells': this.makeRecTable.bind(this)(this.recommender(this.selectedItem))})
-                }
-                }
+                onPress={this.getRec(this.props.navigation).bind(this)}
               />}
               {this.state.nextScreen ? false : this.state.cells}
               <View style={styles.welcomeContainer}>
