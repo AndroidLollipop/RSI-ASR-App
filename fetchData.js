@@ -40,23 +40,21 @@ var getAsrText = async (uri) => { //this code directly mirrors the server reques
 }
 var storeData = {
   "items": [
-    {"iuid": 10, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2 left", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]},
-    {"iuid": 15, "istock": 60, "itemName": "Bubble Gum", "shelfLocation": "shelf1 left", "friendlyLocation": "Banned Foods Section", "shelfRow": 5, "shelfColumn": 1, "tags": ["food", "banned", "bubble", "gum"]},
-    {"iuid": 16, "istock": 60, "itemName": "Tide Pods", "shelfLocation": "shelf1 left", "friendlyLocation": "Not Foods Section", "shelfRow": 5, "shelfColumn": 2, "tags": ["tasty", "drinks", "healthy"]},
-    {"iuid": 17, "istock": 60, "itemName": "Chewing Gum", "shelfLocation": "shelf1 left", "friendlyLocation": "Not Quite Banned Foods Section", "shelfRow": 5, "shelfColumn": 2, "tags": ["food", "notbanned", "chewing", "gum"]},
-    {"iuid": 29, "istock": 60, "itemName": "Bier", "shelfLocation": "shelf-6", "friendlyLocation": "Funeral Items Section", "shelfRow": 5, "shelfColumn": 12, "tags": ["six", "feet", "under"]},
-    {"iuid": 20, "istock": 60, "itemName": "Beer", "shelfLocation": "shelf3 left", "friendlyLocation": "Fun Items Section", "shelfRow": 5, "shelfColumn": 18, "tags": ["dont", "drink", "and", "drive", "beer"]},
-    {"iuid": 18, "istock": 60, "itemName": "asdf", "shelfLocation": "shelf1 left", "friendlyLocation": "awbaeb", "shelfRow": 5, "shelfColumn": 0, "tags": []},
-    {"iuid": 19, "istock": 60, "itemName": "awrhawe", "shelfLocation": "shelf1 left", "friendlyLocation": "efawfdsf", "shelfRow": 5, "shelfColumn": 1, "tags": []},
-    {"iuid": 5, "istock": 60, "itemName": "egaerha", "shelfLocation": "shelf2 right", "friendlyLocation": "fsdzf", "shelfRow": 5, "shelfColumn": 2, "tags": []},
-    {"iuid": 6, "istock": 60, "itemName": "gawegagew", "shelfLocation": "shelf3 left", "friendlyLocation": "zsdfzsd", "shelfRow": 5, "shelfColumn": 3, "tags": []},
-    {"iuid": 7, "istock": 60, "itemName": "bsergsdf", "shelfLocation": "shelf2 left", "friendlyLocation": "fawef", "shelfRow": 5, "shelfColumn": 0, "tags": []},
-    {"iuid": 8, "istock": 60, "itemName": "rbawegewa", "shelfLocation": "shelf3 left", "friendlyLocation": "zdfsdfz", "shelfRow": 5, "shelfColumn": 1, "tags": []},
-    {"iuid": 9, "istock": 60, "itemName": "dsfweab", "shelfLocation": "shelf4 left", "friendlyLocation": "sdfzdfwq", "shelfRow": 5, "shelfColumn": 2, "tags": []}
+    {"iuid": 10, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2 left", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 15, "istock": 60, "itemName": "Bubble Gum", "shelfLocation": "shelf1 left", "friendlyLocation": "Banned Foods Section", "shelfRow": 5, "shelfColumn": 1, "tags": ["food", "banned", "bubble", "gum"], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 16, "istock": 60, "itemName": "Tide Pods", "shelfLocation": "shelf1 left", "friendlyLocation": "Not Foods Section", "shelfRow": 5, "shelfColumn": 2, "tags": ["tasty", "drinks", "healthy"], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 17, "istock": 60, "itemName": "Chewing Gum", "shelfLocation": "shelf1 left", "friendlyLocation": "Not Quite Banned Foods Section", "shelfRow": 5, "shelfColumn": 2, "tags": ["food", "notbanned", "chewing", "gum"], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 29, "istock": 60, "itemName": "Bier", "shelfLocation": "shelf-6", "friendlyLocation": "Funeral Items Section", "shelfRow": 5, "shelfColumn": 12, "tags": ["six", "feet", "under"], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 20, "istock": 60, "itemName": "Beer", "shelfLocation": "shelf3 left", "friendlyLocation": "Fun Items Section", "shelfRow": 5, "shelfColumn": 18, "tags": ["dont", "drink", "and", "drive", "beer"], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 18, "istock": 60, "itemName": "asdf", "shelfLocation": "shelf1 left", "friendlyLocation": "awbaeb", "shelfRow": 5, "shelfColumn": 0, "tags": [], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 19, "istock": 60, "itemName": "awrhawe", "shelfLocation": "shelf1 left", "friendlyLocation": "efawfdsf", "shelfRow": 5, "shelfColumn": 1, "tags": [], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 5, "istock": 60, "itemName": "egaerha", "shelfLocation": "shelf2 right", "friendlyLocation": "fsdzf", "shelfRow": 5, "shelfColumn": 2, "tags": [], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 6, "istock": 60, "itemName": "gawegagew", "shelfLocation": "shelf3 left", "friendlyLocation": "zsdfzsd", "shelfRow": 5, "shelfColumn": 3, "tags": [], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 7, "istock": 60, "itemName": "bsergsdf", "shelfLocation": "shelf2 left", "friendlyLocation": "fawef", "shelfRow": 5, "shelfColumn": 0, "tags": [], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 8, "istock": 60, "itemName": "rbawegewa", "shelfLocation": "shelf3 left", "friendlyLocation": "zdfsdfz", "shelfRow": 5, "shelfColumn": 1, "tags": [], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]},
+    {"iuid": 9, "istock": 60, "itemName": "dsfweab", "shelfLocation": "shelf4 left", "friendlyLocation": "sdfzdfwq", "shelfRow": 5, "shelfColumn": 2, "tags": [], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]}
   ],
   //we are going to use ANTI-CLOCKWISE winding order for polygons
-  //(x, y), POSITIVE x is RIGHT, POSITIVE y is UP
-   //we are going to use ANTI-CLOCKWISE winding order for polygons
   //(x, y), POSITIVE x is RIGHT, POSITIVE y is UP
   "map": { //!!!IMPORTANT: DO NOT CHANGE THIS WITHOUT ALSO CHANGING dijkstraConvex.js!
     "storeMap": [[0, 0], [10, 0], [10, 10], [0, 10]],
@@ -219,7 +217,7 @@ var refresh = async () => {
 }
 var fakeupd = () => { //make fake update
   storeData = clone(storeData)
-  storeData.items.push({"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2 left", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"]})
+  storeData.items.push({"iuid": storeData.items.length+100, "istock": 10, "itemName": "Canned Tuna", "shelfLocation": "shelf2 left", "friendlyLocation": "Canned Foods Section", "shelfRow": 5, "shelfColumn": 3, "tags": ["food", "canned", "tuna"], "boughtWith": [{"iuid": 15, "correlation": 0.5}, {"iuid": 16, "correlation": 0.4}, {"iuid": 17, "correlation": 0.6}]})
   refresh()
 }
 var interval = false;
