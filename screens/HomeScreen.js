@@ -13,7 +13,7 @@ import {
   View,
   Button,
   Dimensions,
-  DeviceEventEmitter
+  NativeEventEmitter
 } from 'react-native';
 import { WebBrowser, Audio, Permissions, FileSystem } from 'expo';
 
@@ -44,8 +44,10 @@ import Svg,{
 
 // begin native imports
 
-import Kontakt from 'react-native-kontaktio';
-const { connect, startScanning } = Kontakt;
+import Kontakt, { KontaktModule } from 'react-native-kontaktio';
+const { init, startDiscovery } = Kontakt;
+
+const kontaktEmitter = new NativeEventEmitter(KontaktModule);
 
 // end native imports
 
@@ -116,19 +118,14 @@ export default class HomeScreen extends React.Component {
 
     // begin native dependents
 
-    /*connect()
-      .then(() => startScanning())
-      .catch(error => console.log('error', error));
+    init()
+      .then(() => startDiscovery())
+      .catch(error => alert('error', error));
 
-    DeviceEventEmitter.addListener(
-      'beaconsDidUpdate',
-      ({ beacons, region }) => {
-        console.log('beaconsDidUpdate', beacons, region);
-      },
-    );*/
-
-    console.log("connect is")
-    console.log(connect)
+    // Add beacon listener
+    kontaktEmitter.addListener('didDiscoverDevices', ({ beacons }) => {
+      console.log('didDiscoverDevices', beacons);
+    });
 
     //end native dependents
 
