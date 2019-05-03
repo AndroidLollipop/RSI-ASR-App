@@ -553,6 +553,7 @@ module.exports = {
   last: last,
   take: take,
   range: range,
+  fromArray: fromArray,
   rangeInterval: rangeInterval,
   mergeSources: mergeSources,
   splitSourceGen: splitSourceGen,
