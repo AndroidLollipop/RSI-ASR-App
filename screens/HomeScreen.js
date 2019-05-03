@@ -52,6 +52,8 @@ var helperFunctions = require("../helperFunctions")
 
 var dijkstraConvex = require("../dijkstraConvex")
 
+const callbags = require("../callbags/callbags")
+
 export default class HomeScreen extends React.Component {
   constructor(props) {
     super(props);
@@ -77,6 +79,7 @@ export default class HomeScreen extends React.Component {
     this.location = [0.1, 0.1] //absolute. the reason we do this is to avoid waiting for storeData
     this.selectedItem = null;
     this.mounted = false;
+    this.stream = null;
   }
   static navigationOptions = {
     title: "Home",
@@ -106,11 +109,30 @@ export default class HomeScreen extends React.Component {
       this.refreshSearchResults.bind(this)(stageCompleter)
     })-1
     this.mounted = true
+    this.stream = callbags.factoryToCallback(async data => {
+      this.asrText = data
+      var [ran, storeData] = await Promise.all([this.searchRanker, this.storeData]);
+      for (var i = 0; i < fetchData.AsrEventListeners.length; i++){ //updates accuracycheck screen
+        var f = fetchData.AsrEventListeners[i]
+        if (f){
+          f()
+        }
+      }
+      this.searchRanker = ran
+      this.storeData = storeData
+      this.setState({ //enable playback controls
+        asrLoaded: true
+      })
+      this.rankingResults = ran(data) //get search rankings
+      this.displaySearchResults.bind(this)() //display search results
+    })
+    this.stream.callbag(fetchData.asrCallbag)
   }
 
   componentWillUnmount(){
     fetchData.RefEventListeners[this.listenerIndex] = undefined
     this.mounted = false
+    this.stream.terminate()
   }
 
   async startAudioRecording(){ //start animations and start audio recording
@@ -375,21 +397,7 @@ export default class HomeScreen extends React.Component {
     this.setState({
       soundLoaded: true
     })
-    var [asr, ran, storeData] = await Promise.all([fetchData.getAsrText(recuri), this.searchRanker, this.storeData]);
-    this.asrText = asr
-    for (var i = 0; i < fetchData.AsrEventListeners.length; i++){ //updates accuracycheck screen
-      var f = fetchData.AsrEventListeners[i]
-      if (f){
-        f()
-      }
-    }
-    this.searchRanker = ran
-    this.storeData = storeData
-    this.setState({ //enable playback controls
-      asrLoaded: true
-    })
-    this.rankingResults = ran(asr) //get search rankings
-    this.displaySearchResults.bind(this)() //display search results
+    await Promise.all([fetchData.getAsrText(recuri), this.searchRanker, this.storeData]);
   }
 
   async startPlaying(){ //debug control, will be removed in final app

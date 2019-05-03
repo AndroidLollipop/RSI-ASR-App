@@ -1,3 +1,6 @@
+// written by AndroidLollipop
+// follows Callbag conventions, except this uses a trampoline:
+// https://github.com/callbag/callbag
 const typeStart = 0
 const typeData = 1
 const typeEnd = 2

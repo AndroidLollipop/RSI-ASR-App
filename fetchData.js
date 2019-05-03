@@ -6,20 +6,6 @@ const asrStream = callbags.factoryFromCallback()
 
 const asrCallbag = callbags.latest(callbags.multicast(asrStream.callbag))
 
-// DEBUG
-
-callbags.listen(x => {
-  console.log("multicast sink 1:")
-  console.log(x)
-})(asrCallbag)
-
-callbags.listen(x => {
-  console.log("multicast sink 2:")
-  console.log(x)
-})(asrCallbag)
-
-// END DEBUG
-
 const asrCallback = asrStream.callback
 
 const refreshStream = callbags.factoryFromCallback()
