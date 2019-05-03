@@ -1,6 +1,6 @@
 import clone from './clone' //TO PREVENT fakeupd FROM VIOLATING IMMUTABILITY OF storeData, WILL BE REMOVED IN FINAL APP
 
-var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
+/*var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
   var resolveMyPromise
   const myPromise = new Promise(resolve => {
@@ -37,6 +37,11 @@ var getAsrText = async (uri) => { //this code directly mirrors the server reques
     console.log(res)
   }
   return myPromise
+}*/
+var getAsrText = async (uri) => {
+  return new Promise(resolve => {
+    setTimeout(() => resolve("where is the bubble gum"), 2000)
+  })
 }
 var storeData = {
   "items": [

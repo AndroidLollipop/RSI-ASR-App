@@ -42,15 +42,6 @@ import Svg,{
     Stop
 } from 'react-native-svg';
 
-// begin native imports
-
-import Kontakt, { KontaktModule } from 'react-native-kontaktio';
-const { init, startDiscovery } = Kontakt;
-
-const kontaktEmitter = new NativeEventEmitter(KontaktModule);
-
-// end native imports
-
 var fetchData = require("../fetchData");
 
 var searchRanker = require("../searchRanker")
@@ -115,20 +106,6 @@ export default class HomeScreen extends React.Component {
       this.refreshSearchResults.bind(this)(stageCompleter)
     })-1
     this.mounted = true
-
-    // begin native dependents
-
-    init()
-      .then(() => startDiscovery())
-      .catch(error => alert('error', error));
-
-    // Add beacon listener
-    kontaktEmitter.addListener('didDiscoverDevices', ({ beacons }) => {
-      console.log('didDiscoverDevices', beacons);
-    });
-
-    //end native dependents
-
   }
 
   componentWillUnmount(){

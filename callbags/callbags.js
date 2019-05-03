@@ -40,6 +40,7 @@ const forEach = (func, misFunc, endFunc, adsFunc) => source => {
     }
   }))
 }
+const start = forEach(()=>{})
 const map = (func, misFunc, endFunc, adsFunc) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback = data
@@ -343,8 +344,9 @@ const splitSourceGen = (override, value) => source => {
   var ended = false
   var started = false
   var cancelledSinkTalkbacks = 0
-  const talkToSource = (type, data) => {
+  const talkToSource = (sinkIndex) => (type, data) => {
     if (type === typeEnd) {
+      sinkTalkbacks[sinkIndex] = undefined
       cancelledSinkTalkbacks++
       if (override ? cancelledSinkTalkbacks === value : cancelledSinkTalkbacks === sinkTalkbacks.length) {
         return () => sourceTalkback(typeEnd, data)
@@ -358,7 +360,7 @@ const splitSourceGen = (override, value) => source => {
     if (type === typeStart) {
       started = true
       sourceTalkback = data
-      return () => sinkTalkbacks.map(talkback => talkback ? () => talkback(type, talkToSource) : undefined)
+      return () => sinkTalkbacks.map((talkback, index) => talkback ? () => talkback(type, talkToSource(index)) : undefined)
     }
     else if (type === typeEnd) {
       ended = true
@@ -375,10 +377,11 @@ const splitSourceGen = (override, value) => source => {
         return () => source(typeStart, talkToSinks)
       }
       else if (ended === true) {
-        return [() => sinkTalkbacks[mySinkIndex](typeStart, ()=>{}), () => sinkTalkbacks[mySinkIndex](typeEnd)]
+        var terminatedBySink = false
+        return [() => sinkTalkbacks[mySinkIndex](typeStart, (type, data)=>{if(type === typeEnd){terminatedBySink = true}}), () => terminatedBySink ? undefined : sinkTalkbacks[mySinkIndex](typeEnd)]
       }
       else if (started === true) {
-        return () => sinkTalkbacks[mySinkIndex](typeStart, talkToSource)
+        return () => sinkTalkbacks[mySinkIndex](typeStart, talkToSource(mySinkIndex))
       }
     }
   }
@@ -387,6 +390,50 @@ const splitSource = splitSourceGen(false)
 const splitSourceFixed = source => (...sinks) => {
   const splitSource = splitSourceGen(true, sinks.length)(source)
   sinks.map(sink => sink(splitSource))
+}
+const multicast = source => {
+  var sinkTalkbacks = []
+  var sourceTalkback
+  var inProgress = false
+  var ended = false
+  var started = false
+  const talkToSource = (sinkIndex) => (type, data) => {
+    if (type === typeEnd) {
+      sinkTalkbacks[sinkIndex] = undefined
+    }
+    else {
+      return () => sourceTalkback(type, data)
+    }
+  }
+  const talkToSinks = (type, data) => {
+    if (type === typeStart) {
+      started = true
+      sourceTalkback = data
+      return () => sinkTalkbacks.map((talkback, index) => talkback ? () => talkback(type, talkToSource(index)) : undefined)
+    }
+    else if (type === typeEnd) {
+      ended = true
+    }
+    return () => sinkTalkbacks.map(talkback => talkback ? () => talkback(type, data) : undefined)
+  }
+  // the protocol isn't completely symmetric so we can't use mergeSources (we need to define an ordering)
+  return (type, data) => {
+    var mySinkIndex
+    if (type === typeStart) {
+      mySinkIndex = sinkTalkbacks.push(data)-1
+      if (inProgress === false) {
+        inProgress = true
+        return () => source(typeStart, talkToSinks)
+      }
+      else if (ended === true) {
+        var terminatedBySink = false
+        return [() => sinkTalkbacks[mySinkIndex](typeStart, (type, data)=>{if(type === typeEnd){terminatedBySink = true}}), () => terminatedBySink ? undefined : sinkTalkbacks[mySinkIndex](typeEnd)]
+      }
+      else if (started === true) {
+        return () => sinkTalkbacks[mySinkIndex](typeStart, talkToSource(mySinkIndex))
+      }
+    }
+  }
 }
 const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => {
   if (type === typeStart) {
@@ -537,7 +584,7 @@ const funcComposeN = (...args) => {
     return res
   }
 }
-module.exports = {
+const mExports = {
   typeStart: typeStart,
   typeData: typeData,
   typeEnd: typeEnd,
@@ -546,6 +593,7 @@ module.exports = {
   typeMIS: typeMIS,
   trampoline: trampoline, // yes, we export even the trampoline
   forEach: forEach,
+  start: start,
   map: map,
   mapFromFactories: mapFromFactories,
   filter: filter,
@@ -559,6 +607,7 @@ module.exports = {
   splitSourceGen: splitSourceGen,
   splitSource: splitSource,
   splitSourceFixed: splitSourceFixed,
+  multicast: multicast,
   evergreenSourceGen: evergreenSourceGen,
   evergreenSource: evergreenSource,
   evergreenSourceBuffered: evergreenSourceBuffered,
@@ -572,5 +621,7 @@ module.exports = {
   compose: compose,
   funcCompose: funcCompose,
   funcNCompose: funcNCompose,
-  funcComposeN: funcComposeN
+  funcComposeN: funcComposeN,
 }
+mExports.callbags = mExports // create a circular reference
+module.exports = mExports
