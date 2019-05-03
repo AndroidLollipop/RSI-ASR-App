@@ -1,4 +1,6 @@
 # RSI-ASR-App
+## Callbags
+This app is being refactored to use callbags instead of a massively messy adhoc architecture
 ## License
 All rights to all code in this repository belong to their respective authors.  
 This is the default copyright position specified by the Berne Convention, which Singapore is a party to.
