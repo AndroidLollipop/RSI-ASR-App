@@ -490,7 +490,7 @@ const latest = source => {
       var sinkTalkback = data
       var sourceTalkback
       var terminatedBySink = false
-      return source(typeStart, (type, data) => {
+      return () => source(typeStart, (type, data) => {
         if (type === typeStart) {
           sourceTalkback = data
           return () => sinkTalkback(typeStart, (type, data) => {
@@ -499,18 +499,18 @@ const latest = source => {
             }
             else if (type == typeEnd) {
               terminatedBySink = true
-              sourceTalkback(type, data)
+              return () => sourceTalkback(type, data)
             }
-            return sourceTalkback(type, data)
+            return () => sourceTalkback(type, data)
           })
         }
         else if (type === typeData) {
           received = true
           latestData = data
-          return sinkTalkback(typeData, data)
+          return () => sinkTalkback(typeData, data)
         }
         else {
-          return sinkTalkback(type, data)
+          return () => sinkTalkback(type, data)
         }
       })
     }
@@ -523,7 +523,7 @@ const latestEvergreen = source => (type, data) => {
     var received = false
     var latestData
     var terminatedBySink = false
-    return source(typeStart, (type, data) => {
+    return () => source(typeStart, (type, data) => {
       if (type === typeStart) {
         sourceTalkback = data
         return () => sinkTalkback(typeStart, (type, data) => {
@@ -532,18 +532,18 @@ const latestEvergreen = source => (type, data) => {
           }
           else if (type == typeEnd) {
             terminatedBySink = true
-            sourceTalkback(type, data)
+            return () => sourceTalkback(type, data)
           }
-          return sourceTalkback(type, data)
+          return () => sourceTalkback(type, data)
         })
       }
       else if (type === typeData) {
         received = true
         latestData = data
-        return sinkTalkback(typeData, data)
+        return () => sinkTalkback(typeData, data)
       }
       else {
-        return sinkTalkback(type, data)
+        return () => sinkTalkback(type, data)
       }
     })
   }
