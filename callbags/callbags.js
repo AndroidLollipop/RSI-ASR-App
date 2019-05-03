@@ -55,16 +55,25 @@ const listenStart = listen(()=>{})
 const pullStart = pullOnce(()=>{})
 const factoryToCallback = (dataCallback, sourceTerminationCallback, startCallback) => {
   var talkToSource
+  var terminatedByCallback = false
   return {
     callbag: source => {
       return trampoline(source(typeStart, (type, data) => {
         if (type === typeStart) {
+          if (terminatedByCallback) {
+            return () => data(typeEnd)
+          }
           talkToSource = data
           if (startCallback) {
             return () => startCallback(data, talkToSource)
           }
         }
         else if (type === typeData) {
+          if (terminatedByCallback) {
+            const savedSourceTalkback = talkToSource
+            talkToSource = undefined
+            return () => savedSourceTalkback(typeEnd)
+          }
           // yes, please supply a data callback. ()=>{} is fine.
           return () => dataCallback(data, talkToSource)
         }
@@ -86,15 +95,13 @@ const factoryToCallback = (dataCallback, sourceTerminationCallback, startCallbac
       }
     },
     terminate: data => {
+      terminatedByCallback = true
       if (talkToSource) {
-        const savedTalkback = talkToSource
+        const savedSourceTalkback = talkToSource
         talkToSource = undefined
-        trampoline(savedTalkback(typeEnd, data))
-        return cbtySuccess
+        trampoline(savedSourceTalkback(typeEnd, data))
       }
-      else {
-        return cbtyFailure
-      }
+      return cbtySuccess
     }
   }
 }
@@ -301,11 +308,21 @@ const range = (immutableStart, nonInclusiveEnd) => (type, data) => {
 }
 const factoryFromCallback = sinkTerminationCallback => {
   var talkToSink
+  var terminatedByCallback = false
   return {
     callbag: (type, data) => {
       if (type === typeStart) {
+        if (terminatedByCallback) {
+          return [() => data(typeStart, (type, innerData) => {
+            if (type === typeEnd) {
+              data = undefined
+              // the reason a termination flag rather than this is used in latest is for readability.
+              // readability isn't a huge concern here.
+            }
+          }), () => data ? data(typeEnd) : undefined]
+        }
         talkToSink = data
-        return () => data(typeStart, (type, innerData) => {
+        return () => talkToSink(typeStart, (type, innerData) => {
           if (type === typeEnd) {
             talkToSink = undefined
             if (sinkTerminationCallback) {
@@ -325,15 +342,13 @@ const factoryFromCallback = sinkTerminationCallback => {
       }
     },
     terminate: data => {
+      terminatedByCallback = true
       if (talkToSink) {
         const savedSinkTalkback = talkToSink
         talkToSink = undefined
         trampoline(() => savedSinkTalkback(typeEnd, data))
-        return cbtySuccess
       }
-      else {
-        return cbtyFailure
-      }
+      return cbtySuccess
     }
   }
 }
