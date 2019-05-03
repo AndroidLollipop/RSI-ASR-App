@@ -18,16 +18,20 @@ const trampoline = func => {
     }
   }
 }
-const forEach = (func, misFunc, endFunc, adsFunc) => source => {
+const forEachGen = (active) => (func, misFunc, endFunc, adsFunc) => source => {
   var talkback
   return trampoline(source(typeStart, (type, data) => {
     if (type === typeStart) {
       talkback = data
-      return () => talkback(typeData)
+      if (active) {
+        return () => talkback(typeData)
+      }
     }
     else if (type === typeData) {
       func(data)
-      return () => talkback(typeData)
+      if (active) {
+        return () => talkback(typeData)
+      }
     }
     else if (type === typeMIS && misFunc) {
       misFunc(data)
@@ -40,7 +44,10 @@ const forEach = (func, misFunc, endFunc, adsFunc) => source => {
     }
   }))
 }
+const forEach = forEachGen(true)
+const listen = forEachGen(false)
 const start = forEach(()=>{})
+const listenStart = listen(()=>{})
 const map = (func, misFunc, endFunc, adsFunc) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback = data
@@ -242,6 +249,31 @@ const range = (immutableStart, nonInclusiveEnd) => (type, data) => {
     })
   }
 }
+const factoryFromCallback = terminationCallback => {
+  var talkToSink
+  return {
+    callbag: (type, data) => {
+      if (type === typeStart) {
+        talkToSink = data
+        return () => data(typeStart, (type, innerData) => {
+          if (type === typeEnd) {
+            talkToSink = undefined
+            terminationCallback()
+          }
+        })
+      }
+    },
+    callback: data => {
+      if (talkToSink) {
+        trampoline(() => talkToSink(typeData, data))
+        return typeData
+      }
+      else {
+        return typeEnd
+      }
+    }
+  }
+}
 const fromArray = (array, immutableStart, nonInclusiveEnd) => (type, data) => {
   if (type === typeStart) {
     var start = 0
@@ -435,6 +467,73 @@ const multicast = source => {
     }
   }
 }
+const latest = source => {
+  var received = false
+  var latestData
+  // we can return to sink immediately, but we might need to buffer if we do so.
+  return (type, data) => {
+    if (type === typeStart) {
+      var sinkTalkback = data
+      var sourceTalkback
+      var terminatedBySink = false
+      return source(typeStart, (type, data) => {
+        if (type === typeStart) {
+          sourceTalkback = data
+          return () => sinkTalkback(typeStart, (type, data) => {
+            if (type === typeData && received == true) {
+              return [() => sinkTalkback(typeData, latestData), () => terminatedBySink ? undefined : sourceTalkback(type, data)]
+            }
+            else if (type == typeEnd) {
+              terminatedBySink = true
+              sourceTalkback(type, data)
+            }
+            return sourceTalkback(type, data)
+          })
+        }
+        else if (type === typeData) {
+          received = true
+          latestData = data
+          return sinkTalkback(typeData, data)
+        }
+        else {
+          return sinkTalkback(type, data)
+        }
+      })
+    }
+  }
+}
+const latestEvergreen = source => (type, data) => {
+  if (type === typeStart) {
+    var sinkTalkback = data
+    var sourceTalkback
+    var received = false
+    var latestData
+    var terminatedBySink = false
+    return source(typeStart, (type, data) => {
+      if (type === typeStart) {
+        sourceTalkback = data
+        return () => sinkTalkback(typeStart, (type, data) => {
+          if (type === typeData && received == true) {
+            return [() => sinkTalkback(typeData, latestData), () => terminatedBySink ? undefined : sourceTalkback(type, data)]
+          }
+          else if (type == typeEnd) {
+            terminatedBySink = true
+            sourceTalkback(type, data)
+          }
+          return sourceTalkback(type, data)
+        })
+      }
+      else if (type === typeData) {
+        received = true
+        latestData = data
+        return sinkTalkback(typeData, data)
+      }
+      else {
+        return sinkTalkback(type, data)
+      }
+    })
+  }
+}
 const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback
@@ -593,7 +692,9 @@ const mExports = {
   typeMIS: typeMIS,
   trampoline: trampoline, // yes, we export even the trampoline
   forEach: forEach,
+  listen: listen,
   start: start,
+  listenStart: listenStart,
   map: map,
   mapFromFactories: mapFromFactories,
   filter: filter,
@@ -601,6 +702,7 @@ const mExports = {
   last: last,
   take: take,
   range: range,
+  factoryFromCallback: factoryFromCallback,
   fromArray: fromArray,
   rangeInterval: rangeInterval,
   mergeSources: mergeSources,
@@ -608,6 +710,8 @@ const mExports = {
   splitSource: splitSource,
   splitSourceFixed: splitSourceFixed,
   multicast: multicast,
+  latest: latest,
+  latestEvergreen: latestEvergreen,
   evergreenSourceGen: evergreenSourceGen,
   evergreenSource: evergreenSource,
   evergreenSourceBuffered: evergreenSourceBuffered,

@@ -1,9 +1,9 @@
 {
   "expoServerPort": 19000,
-  "packagerPort": null,
-  "packagerPid": null,
-  "expoServerNgrokUrl": null,
-  "packagerNgrokUrl": null,
-  "ngrokPid": null,
+  "packagerPort": 19001,
+  "packagerPid": 22793,
+  "expoServerNgrokUrl": "https://7u-bxe.kingsotongxvi.callbags-asr-app.exp.direct",
+  "packagerNgrokUrl": "https://packager.7u-bxe.kingsotongxvi.callbags-asr-app.exp.direct",
+  "ngrokPid": 22804,
   "devToolsPort": 19002
 }

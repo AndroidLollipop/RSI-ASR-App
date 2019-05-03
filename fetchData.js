@@ -1,5 +1,27 @@
 import clone from './clone' //TO PREVENT fakeupd FROM VIOLATING IMMUTABILITY OF storeData, WILL BE REMOVED IN FINAL APP
 
+const callbags = require("./callbags/callbags")
+
+const asrStream = callbags.factoryFromCallback()
+
+const asrCallbag = callbags.multicast(callbags.latest(asrStream.callbag))
+
+// DEBUG
+
+callbags.listen(x => {
+  console.log("multicast sink 1:")
+  console.log(x)
+})(asrCallbag)
+
+callbags.listen(x => {
+  console.log("multicast sink 2:")
+  console.log(x)
+})(asrCallbag)
+
+// END DEBUG
+
+const asrCallback = asrStream.callback
+
 /*var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
   var resolveMyPromise
@@ -40,7 +62,11 @@ import clone from './clone' //TO PREVENT fakeupd FROM VIOLATING IMMUTABILITY OF 
 }*/
 var getAsrText = async (uri) => {
   return new Promise(resolve => {
-    setTimeout(() => resolve("where is the bubble gum"), 2000)
+    setTimeout(() => {
+      const response = "where is the bubble gum"
+      asrCallback(response)
+      resolve(response)
+    }, 2000)
   })
 }
 var storeData = {
