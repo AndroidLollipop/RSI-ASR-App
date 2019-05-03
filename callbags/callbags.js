@@ -707,6 +707,7 @@ const mExports = {
   cbtySuccess: cbtySuccess,
   cbtyFailure: cbtyFailure,
   trampoline: trampoline, // yes, we export even the trampoline
+  forEachGen: forEachGen,
   forEach: forEach,
   listen: listen,
   pullOnce,
