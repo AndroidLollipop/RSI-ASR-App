@@ -4,7 +4,7 @@ const callbags = require("./callbags/callbags")
 
 const asrStream = callbags.factoryFromCallback()
 
-const asrCallbag = callbags.multicast(callbags.latest(asrStream.callbag))
+const asrCallbag = callbags.latest(callbags.multicast(asrStream.callbag))
 
 // DEBUG
 
@@ -279,3 +279,4 @@ exports.refresh = refresh;
 exports.fupdate = fakeupd;
 exports.intervalActive = intervalActive;
 exports.toggleInterval = toggleInterval;
+exports.asrCallbag = asrCallbag;

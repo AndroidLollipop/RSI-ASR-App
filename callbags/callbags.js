@@ -4,6 +4,8 @@ const typeEnd = 2
 const typeNFE = 1337
 const typeIFE = 1338
 const typeMIS = 1339
+const cbtySuccess = 1340
+const cbtyFailure = 1341
 const trampoline = func => {
   // we cannot use recursion in the trampoline because we want to avoid call stack overflows (which is why we have a trampoline in the first place)
   var buffer = [func]
@@ -18,18 +20,18 @@ const trampoline = func => {
     }
   }
 }
-const forEachGen = (active) => (func, misFunc, endFunc, adsFunc) => source => {
+const forEachGen = (startPull, dataPull) => (func, misFunc, endFunc, adsFunc) => source => {
   var talkback
   return trampoline(source(typeStart, (type, data) => {
     if (type === typeStart) {
       talkback = data
-      if (active) {
+      if (startPull) {
         return () => talkback(typeData)
       }
     }
     else if (type === typeData) {
       func(data)
-      if (active) {
+      if (dataPull) {
         return () => talkback(typeData)
       }
     }
@@ -44,10 +46,13 @@ const forEachGen = (active) => (func, misFunc, endFunc, adsFunc) => source => {
     }
   }))
 }
-const forEach = forEachGen(true)
-const listen = forEachGen(false)
+const forEach = forEachGen(true, true)
+const listen = forEachGen(false, false)
+const pullOnce = forEachGen(true, false)
+// only false, true left but no legitimate uses of that come to mind immediately
 const start = forEach(()=>{})
 const listenStart = listen(()=>{})
+const pullStart = pullOnce(()=>{})
 const map = (func, misFunc, endFunc, adsFunc) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback = data
@@ -249,7 +254,7 @@ const range = (immutableStart, nonInclusiveEnd) => (type, data) => {
     })
   }
 }
-const factoryFromCallback = terminationCallback => {
+const factoryFromCallback = sinkTerminationCallback => {
   var talkToSink
   return {
     callbag: (type, data) => {
@@ -258,7 +263,7 @@ const factoryFromCallback = terminationCallback => {
         return () => data(typeStart, (type, innerData) => {
           if (type === typeEnd) {
             talkToSink = undefined
-            terminationCallback()
+            sinkTerminationCallback(innerData)
           }
         })
       }
@@ -266,10 +271,19 @@ const factoryFromCallback = terminationCallback => {
     callback: data => {
       if (talkToSink) {
         trampoline(() => talkToSink(typeData, data))
-        return typeData
+        return cbtySuccess
       }
       else {
-        return typeEnd
+        return cbtyFailure
+      }
+    },
+    terminate: data => {
+      if (talkToSink) {
+        trampoline(() => talkToSink(typeEnd, data))
+        return cbtySuccess
+      }
+      else {
+        return cbtyFailure
       }
     }
   }
@@ -690,11 +704,15 @@ const mExports = {
   typeNFE: typeNFE,
   typeIFE: typeIFE,
   typeMIS: typeMIS,
+  cbtySuccess: cbtySuccess,
+  cbtyFailure: cbtyFailure,
   trampoline: trampoline, // yes, we export even the trampoline
   forEach: forEach,
   listen: listen,
+  pullOnce,
   start: start,
   listenStart: listenStart,
+  pullStart,
   map: map,
   mapFromFactories: mapFromFactories,
   filter: filter,
