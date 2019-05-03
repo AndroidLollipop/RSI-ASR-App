@@ -53,6 +53,51 @@ const pullOnce = forEachGen(true, false)
 const start = forEach(()=>{})
 const listenStart = listen(()=>{})
 const pullStart = pullOnce(()=>{})
+const factoryToCallback = (dataCallback, sourceTerminationCallback, startCallback) => {
+  var talkToSource
+  return {
+    callbag: source => {
+      return trampoline(source(typeStart, (type, data) => {
+        if (type === typeStart) {
+          talkToSource = data
+          if (startCallback) {
+            return () => startCallback(data, talkToSource)
+          }
+        }
+        else if (type === typeData) {
+          // yes, please supply a data callback. ()=>{} is fine.
+          return () => dataCallback(data, talkToSource)
+        }
+        else if (type === typeEnd) {
+          talkToSource = undefined
+          if (sourceTerminationCallback) {
+            return () => sourceTerminationCallback(data, talkToSource)
+          }
+        }
+      }))
+    },
+    callback: data => {
+      if (talkToSource) {
+        trampoline(talkToSource(typeData, data))
+        return cbtySuccess
+      }
+      else {
+        return cbtyFailure
+      }
+    },
+    terminate: data => {
+      if (talkToSource) {
+        const savedTalkback = talkToSource
+        talkToSource = undefined
+        trampoline(savedTalkback(typeEnd, data))
+        return cbtySuccess
+      }
+      else {
+        return cbtyFailure
+      }
+    }
+  }
+}
 const map = (func, misFunc, endFunc, adsFunc) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback = data
@@ -263,7 +308,9 @@ const factoryFromCallback = sinkTerminationCallback => {
         return () => data(typeStart, (type, innerData) => {
           if (type === typeEnd) {
             talkToSink = undefined
-            sinkTerminationCallback(innerData)
+            if (sinkTerminationCallback) {
+              sinkTerminationCallback(innerData)
+            }
           }
         })
       }
@@ -279,7 +326,9 @@ const factoryFromCallback = sinkTerminationCallback => {
     },
     terminate: data => {
       if (talkToSink) {
-        trampoline(() => talkToSink(typeEnd, data))
+        const savedSinkTalkback = talkToSink
+        talkToSink = undefined
+        trampoline(() => savedSinkTalkback(typeEnd, data))
         return cbtySuccess
       }
       else {
@@ -714,6 +763,7 @@ const mExports = {
   start: start,
   listenStart: listenStart,
   pullStart,
+  factoryToCallback: factoryToCallback,
   map: map,
   mapFromFactories: mapFromFactories,
   filter: filter,
