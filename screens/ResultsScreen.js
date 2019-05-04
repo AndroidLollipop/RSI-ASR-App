@@ -72,7 +72,6 @@ export default class ResultsScreen extends React.Component {
   componentWillUnmount(){
     this.mounted = false
     fetchData.MapEventListeners[this.listenerIndex] = undefined
-    fetchData.RefEventListeners[this.listenerIndey] = undefined
     this.searchCellsStream.terminate()
   }
 
@@ -83,7 +82,7 @@ export default class ResultsScreen extends React.Component {
         <Button
           title="Check Accuracy"
           onPress={() =>
-            navigate('Accuracy', {'name': 'Check Accuracy', 'asrTextGetter': this.props.navigation.state.params.asrTextGetter})
+            navigate('Accuracy', {'name': 'Check Accuracy'})
           }
         />
         <Button

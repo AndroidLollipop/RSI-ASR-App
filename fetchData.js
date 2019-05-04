@@ -236,12 +236,6 @@ var refresh = async () => {
   var stageCompletion = new Promise((resolve) => {
     stageCompleter = resolve
   })
-  for (var i = 0; i < exports.RefEventListeners.length; i++){
-    var f = exports.RefEventListeners[i]
-    if (f){
-      f(stageCompletion, stageCompleter)
-    }
-  }
 }
 var fakeupd = () => { //make fake update
   storeData = clone(storeData)
@@ -262,8 +256,7 @@ var exports = module.exports = {
   dataInvalidated : true,
   Images: {},
   StateData: {"ServerURL": "http://192.168.1.31/speech/english/imda1.php", "SelectedShelf": null},
-  MapEventListeners: [],
-  RefEventListeners: []
+  MapEventListeners: []
 }
 exports.getAsrText = getAsrText;
 exports.getInventory = getInventory;
