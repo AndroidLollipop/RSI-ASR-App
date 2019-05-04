@@ -8,9 +8,9 @@ const asrCallbag = callbags.latest(callbags.multicast(asrStream.callbag))
 
 const asrCallback = asrStream.callback
 
-const refreshStream = callbags.factoryFromCallback()
+const mapRendererStream = callbags.factoryFromCallback()
 
-const searchStream = callbags.factoryFromCallback()
+const searchCellsStream = callbags.factoryFromCallback()
 
 /*var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
@@ -270,5 +270,5 @@ exports.fupdate = fakeupd;
 exports.intervalActive = intervalActive;
 exports.toggleInterval = toggleInterval;
 exports.asrCallbag = asrCallbag;
-exports.refreshStream = refreshStream;
-exports.searchStream = searchStream;
+exports.mapRendererStream = mapRendererStream;
+exports.searchCellsStream = searchCellsStream;

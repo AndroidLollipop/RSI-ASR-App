@@ -108,6 +108,61 @@ const factoryToCallback = (dataCallback, sourceTerminationCallback, startCallbac
     }
   }
 }
+const toPromiselikeGen = startPull => source => {
+  var talkToSource
+  var terminatedByCallback = false
+  var received = false
+  var resolvedData
+  var talkToCallback
+  var rejected = false
+  var resolvedError
+  var talkToError
+  trampoline(source(typeStart, (type, data) => {
+    if (type === typeStart) {
+      if (terminatedByCallback) {
+        return () => data(typeEnd)
+      }
+      talkToSource = data
+      if (startPull) {
+        return () => talkToSource(typeData)
+      }
+    }
+    else if (type === typeData) {
+      received = true
+      resolvedData = data
+      const savedSourceTalkback = talkToSource
+      talkToSource = undefined
+      if (talkToCallback) {
+        talkToCallback(data)
+      }
+      return () => savedSourceTalkback(typeEnd)
+    }
+    else if (type === typeEnd) {
+      rejected = true
+      resolvedError = data
+      talkToSource = undefined
+      if (talkToError) {
+        talkToError(data)
+      }
+    }
+  }))
+  return {
+    then: callback => {
+      talkToCallback = callback
+      if (received) {
+        callback(resolvedData)
+      }
+    },
+    reject: error => {
+      talkToError = error
+      if (rejected) {
+        error(resolvedError)
+      }
+    }
+  }
+}
+const toPromiselike = toPromiselikeGen(false)
+const toPromiselikePull = toPromiselikeGen(true)
 const map = (func, misFunc, endFunc, adsFunc) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback = data
@@ -782,6 +837,9 @@ const mExports = {
   listenStart: listenStart,
   pullStart,
   factoryToCallback: factoryToCallback,
+  toPromiselikeGen: toPromiselikeGen,
+  toPromiselike: toPromiselike,
+  toPromiselikePull: toPromiselikePull,
   map: map,
   mapFromFactories: mapFromFactories,
   filter: filter,
