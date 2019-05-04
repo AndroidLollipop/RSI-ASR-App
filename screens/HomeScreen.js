@@ -120,7 +120,7 @@ export default class HomeScreen extends React.Component {
       this.rankingResults = ran(data) //get search rankings
       this.displaySearchResults.bind(this)() //display search results
     })
-    this.asrStream.callbag(fetchData.asrCallbag)
+    this.asrStream.callbag(fetchData.asrStream.callbag)
     this.outStream = fetchData.mapRendererStream
   }
 

@@ -4,9 +4,7 @@ const callbags = require("./callbags/callbags")
 
 const asrStream = callbags.factoryFromCallback()
 
-const asrCallbag = callbags.latestRDI(callbags.multicast(asrStream.callbag))
-
-const asrCallback = asrStream.callback
+asrStream.callbag = callbags.latestRDI(callbags.multicast(asrStream.callbag))
 
 const mapRendererStream = callbags.factoryFromCallback()
 
@@ -62,7 +60,7 @@ var getAsrText = async (uri) => {
   return new Promise(resolve => {
     setTimeout(() => {
       const response = "where is the bubble gum"
-      asrCallback(response)
+      asrStream.callback(response)
       resolve(response)
     }, 2000)
   })
@@ -277,7 +275,7 @@ exports.refresh = refresh;
 exports.fupdate = fakeupd;
 exports.intervalActive = intervalActive;
 exports.toggleInterval = toggleInterval;
-exports.asrCallbag = asrCallbag;
+exports.asrStream = asrStream;
 exports.mapRendererStream = mapRendererStream;
 exports.searchCellsStream = searchCellsStream;
 exports.storeDataStream = storeDataStream;

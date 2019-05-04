@@ -38,7 +38,7 @@ export default class AccuracyCheck extends React.Component {
       this.setState({})
       this.updateAccuracy(this.state.text)
     })
-    this.asrStream.callbag(fetchData.asrCallbag)
+    this.asrStream.callbag(fetchData.asrStream.callbag)
   }
 
   componentWillUnmount() {
