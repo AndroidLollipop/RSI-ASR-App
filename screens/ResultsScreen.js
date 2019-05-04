@@ -41,11 +41,19 @@ export default class ResultsScreen extends React.Component {
     this.mounted = true;
   }
 
-  async componentDidMount(){
+  componentDidMount(){
     this.searchCellsStream = callbags.factoryPullCallback(cells => {
       this.setState({cells: cells})
     })
     this.searchCellsStream.callbag(fetchData.searchCellsStream.callbag)
+    this.mapBaseStream = callbags.factoryPullCallback(mapBase => {
+      if (mapBase) {
+        this.setState({
+          myMap: mapBase
+        })
+      }
+    })
+    this.mapBaseStream.callbag(fetchData.mapBaseStream.callbag)
     this.mapHighlightStream = callbags.factoryPullCallback(highlights => {
       if (highlights) {
         this.setState({
@@ -57,17 +65,9 @@ export default class ResultsScreen extends React.Component {
     })
     this.mapHighlightStream.callbag(fetchData.mapHighlightStream.callbag)
     let cells = this.props.navigation.state.params.resultcells
-    let map = this.props.navigation.state.params.mapGenerator()
     this.setState({
       cells: cells
     })
-    let myMap = await map
-    //this component may have unmounted while we were waiting for map
-    if (this.mounted) {
-      this.setState({
-        myMap: myMap,
-      })
-    }
   }
 
   componentWillUnmount(){

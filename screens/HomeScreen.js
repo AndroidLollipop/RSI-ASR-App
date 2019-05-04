@@ -78,8 +78,6 @@ export default class HomeScreen extends React.Component {
     this.location = [0.1, 0.1] //absolute. the reason we do this is to avoid waiting for storeData
     this.selectedItem = null;
     this.mounted = false;
-    this.asrStream = null;
-    this.outStream = null;
   }
   static navigationOptions = {
     title: "Home",
@@ -301,6 +299,7 @@ export default class HomeScreen extends React.Component {
     this.setState({
       polygonMap: pma
     })
+    fetchData.mapBaseStream.callback(pma)
   }
 
   async getMap(){
