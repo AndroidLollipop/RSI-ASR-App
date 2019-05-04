@@ -121,7 +121,6 @@ export default class HomeScreen extends React.Component {
       this.displaySearchResults.bind(this)() //display search results
     })
     this.asrStream.callbag(fetchData.asrStream.callbag)
-    this.outStream = fetchData.mapRendererStream
   }
 
   componentWillUnmount(){
@@ -195,12 +194,11 @@ export default class HomeScreen extends React.Component {
       this.computedPath = null
     }
     this.generateHighlight()
-    for (var i = 0; i < fetchData.MapEventListeners.length; i++){
-      var f = fetchData.MapEventListeners[i]
-      if (f){
-        f()
-      }
-    }
+    fetchData.mapHighlightStream.callback({
+      shelfHighlight: this.mapHighlight,
+      pathHighlight: this.pathHighlight,
+      locHighlight: this.locHighlight
+    })
   }
 
   renderRecOP = (navigator) => async (x) => {
@@ -212,12 +210,11 @@ export default class HomeScreen extends React.Component {
     this.location = [x.nativeEvent.locationX/this.width, 1-x.nativeEvent.locationY/this.width]
     let loc = this.makeCircle()
     this.locHighlight = loc
-    for (var i = 0; i < fetchData.MapEventListeners.length; i++){
-      var f = fetchData.MapEventListeners[i]
-      if (f){
-        f()
-      }
-    }
+    fetchData.mapHighlightStream.callback({
+      shelfHighlight: this.mapHighlight,
+      pathHighlight: this.pathHighlight,
+      locHighlight: this.locHighlight
+    })
     this.setState({
       locHighlight: loc
     })

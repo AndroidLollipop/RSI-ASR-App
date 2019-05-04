@@ -2,21 +2,27 @@ import clone from './clone' //TO PREVENT fakeupd FROM VIOLATING IMMUTABILITY OF 
 
 const callbags = require("./callbags/callbags")
 
+const guardStart = callbags.funcComposeN(x => (callbags.listenStart(x),x), callbags.latestRDI, callbags.multicast)
+
 const asrStream = callbags.factoryFromCallback()
 
-asrStream.callbag = callbags.latestRDI(callbags.multicast(asrStream.callbag))
+asrStream.callbag = guardStart(asrStream.callbag)
 
-const mapRendererStream = callbags.factoryFromCallback()
+const mapBaseStream = callbags.factoryFromCallback()
 
-mapRendererStream.callbag = callbags.latestRDI(callbags.multicast(mapRendererStream.callbag))
+mapBaseStream.callbag = guardStart(mapBaseStream.callbag)
+
+const mapHighlightStream = callbags.factoryFromCallback()
+
+mapHighlightStream.callbag = guardStart(mapHighlightStream.callbag)
 
 const searchCellsStream = callbags.factoryFromCallback()
 
-searchCellsStream.callbag = callbags.latestRDI(callbags.multicast(searchCellsStream.callbag))
+searchCellsStream.callbag = guardStart(searchCellsStream.callbag)
 
 const storeDataStream = callbags.factoryFromCallback()
 
-storeDataStream.callbag = callbags.latestRDI(callbags.multicast(storeDataStream.callbag))
+storeDataStream.callbag = guardStart(storeDataStream.callbag)
 
 /*var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
@@ -255,8 +261,7 @@ var intervalActive = () => interval;
 var exports = module.exports = {
   dataInvalidated : true,
   Images: {},
-  StateData: {"ServerURL": "http://192.168.1.31/speech/english/imda1.php", "SelectedShelf": null},
-  MapEventListeners: []
+  StateData: {"ServerURL": "http://192.168.1.31/speech/english/imda1.php", "SelectedShelf": null}
 }
 exports.getAsrText = getAsrText;
 exports.getInventory = getInventory;
@@ -269,6 +274,7 @@ exports.fupdate = fakeupd;
 exports.intervalActive = intervalActive;
 exports.toggleInterval = toggleInterval;
 exports.asrStream = asrStream;
-exports.mapRendererStream = mapRendererStream;
+exports.mapBaseStream = mapBaseStream;
+exports.mapHighlightStream = mapHighlightStream;
 exports.searchCellsStream = searchCellsStream;
 exports.storeDataStream = storeDataStream;

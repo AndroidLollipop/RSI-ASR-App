@@ -34,8 +34,6 @@ export default class ResultsScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = {myMap: false, cells: false, myHighlight: false, myPathHighlight: false, myLocHighlight: false}
-    this.listenerIndex = null;
-    this.listenerIndey = null;
     this.searchCellsStream = null;
     let {height, width} = Dimensions.get("window");
     this.height = height;
@@ -44,21 +42,24 @@ export default class ResultsScreen extends React.Component {
   }
 
   async componentDidMount(){
-    this.listenerIndex = fetchData.MapEventListeners.push(() => {let hil = this.props.navigation.state.params.highlightGetter(); let phi = this.props.navigation.state.params.pathHighlightGetter(); let loc = this.props.navigation.state.params.locHighlightGetter(); this.setState({myHighlight: hil, myPathHighlight: phi, myLocHighlight: loc})})-1
-    this.searchCellsStream = callbags.factoryToCallback(cells => {
+    this.searchCellsStream = callbags.factoryPullCallback(cells => {
       this.setState({cells: cells})
     })
     this.searchCellsStream.callbag(fetchData.searchCellsStream.callbag)
+    this.mapHighlightStream = callbags.factoryPullCallback(highlights => {
+      if (highlights) {
+        this.setState({
+          myHighlight: highlights.shelfHighlight,
+          myPathHighlight: highlights.pathHighlight,
+          myLocHighlight: highlights.locHighlight
+        })
+      }
+    })
+    this.mapHighlightStream.callbag(fetchData.mapHighlightStream.callbag)
     let cells = this.props.navigation.state.params.resultcells
     let map = this.props.navigation.state.params.mapGenerator()
-    let hil = this.props.navigation.state.params.highlightGetter()
-    let phi = this.props.navigation.state.params.pathHighlightGetter()
-    let loc = this.props.navigation.state.params.locHighlightGetter()
     this.setState({
-      cells: cells,
-      myHighlight: hil,
-      myPathHighlight: phi,
-      myLocHighlight: loc
+      cells: cells
     })
     let myMap = await map
     //this component may have unmounted while we were waiting for map
@@ -71,8 +72,8 @@ export default class ResultsScreen extends React.Component {
 
   componentWillUnmount(){
     this.mounted = false
-    fetchData.MapEventListeners[this.listenerIndex] = undefined
     this.searchCellsStream.terminate()
+    this.mapHighlightStream.terminate()
   }
 
   render() {
