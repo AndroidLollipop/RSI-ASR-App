@@ -112,12 +112,6 @@ export default class HomeScreen extends React.Component {
     this.asrStream = callbags.factoryToCallback(async data => {
       this.asrText = data
       var [ran, storeData] = await Promise.all([this.searchRanker, this.storeData]);
-      for (var i = 0; i < fetchData.AsrEventListeners.length; i++){ //updates accuracycheck screen
-        var f = fetchData.AsrEventListeners[i]
-        if (f){
-          f()
-        }
-      }
       this.searchRanker = ran
       this.storeData = storeData
       this.setState({ //enable playback controls

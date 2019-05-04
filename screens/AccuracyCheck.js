@@ -3,6 +3,8 @@ import { ScrollView, StyleSheet, Text, View, TextInput, Dimensions } from 'react
 
 var fetchData = require("../fetchData")
 
+const callbags = require("../callbags/callbags")
+
 export default class AccuracyCheck extends React.Component {
   static navigationOptions = ({ navigation }) => ({
     title: `${navigation.state.params.name}`,
@@ -24,18 +26,23 @@ export default class AccuracyCheck extends React.Component {
     let {height, width} = Dimensions.get("window")
     this.width = width
     this.height = height
+    this.asrStream = null
   }
 
   componentDidMount() {
     if (fetchData.StateData.savedText){
       this.updateAccuracy.bind(this)(fetchData.StateData.savedText)
     }
-    this.listenerIndex = fetchData.AsrEventListeners.push(() => {this.setState({}); this.updateAccuracy(this.state.text)})-1
-    console.log(fetchData.AsrEventListeners)
+    this.asrStream = callbags.factoryPullCallback(data => {
+      this.asrText = data
+      this.setState({})
+      this.updateAccuracy(this.state.text)
+    })
+    this.asrStream.callbag(fetchData.asrCallbag)
   }
 
   componentWillUnmount() {
-    fetchData.AsrEventListeners[this.listenerIndex] = undefined
+    this.asrStream.terminate()
   }
 
   updateAccuracy(text) {
@@ -80,7 +87,6 @@ export default class AccuracyCheck extends React.Component {
   }
 
   render() {
-    this.asrText = this.props.navigation.state.params.asrTextGetter()
     return (
       <ScrollView style={styles.container}>
         <View style={{alignItems: 'center'}}>

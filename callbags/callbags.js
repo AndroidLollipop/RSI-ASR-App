@@ -68,7 +68,7 @@ const factoryToCallback = (dataCallback, sourceTerminationCallback, startCallbac
           }
           talkToSource = data
           if (startCallback) {
-            return () => startCallback(data, talkToSource)
+            return () => startCallback(talkToSource)
           }
         }
         else if (type === typeData) {
@@ -108,6 +108,9 @@ const factoryToCallback = (dataCallback, sourceTerminationCallback, startCallbac
     }
   }
 }
+const factoryPullCallback = (dataCallback, sourceTerminationCallback) => factoryToCallback(dataCallback, sourceTerminationCallback, (talkToSource) => {
+  return () => talkToSource(typeData)
+})
 const toPromiselikeGen = startPull => source => {
   var talkToSource
   var terminatedByCallback = false
@@ -153,7 +156,7 @@ const toPromiselikeGen = startPull => source => {
       }
     }
   }))
-  return {
+  return { // only allows a single level of .callback (callbacks can only be set once). use toPromise to completely convert to promise.
     then: callback => {
       talkToCallback = callback
       if (received) {
@@ -176,13 +179,15 @@ const toPromiselikeGen = startPull => source => {
 }
 const toPromiselike = toPromiselikeGen(false)
 const toPromiselikePull = toPromiselikeGen(true)
-const toPromise = source => new Promise(
+const toPromiseGen = startPull => source => new Promise(
   (resolve, reject) => {
-    const promiselike = toPromiselike(source)
+    const promiselike = toPromiselikeGen(startPull)(source)
     promiselike.then(resolve)
     promiselike.catch(reject)
   }
 )
+const toPromise = toPromiseGen(false)
+const toPromisePull = toPromiseGen(true)
 const map = (func, misFunc, endFunc, adsFunc) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback = data
@@ -623,9 +628,9 @@ const multicast = source => {
     }
   }
 }
-const latest = source => {
+const latestGen = replyDataImmediately => source => {
   var received = false
-  var latestData
+  var latestData = undefined
   // we can return to sink immediately, but we might need to buffer if we do so.
   return (type, data) => {
     if (type === typeStart) {
@@ -636,10 +641,10 @@ const latest = source => {
         if (type === typeStart) {
           sourceTalkback = data
           return () => sinkTalkback(typeStart, (type, data) => {
-            if (type === typeData && received == true) {
+            if (type === typeData && (replyDataImmediately === true || received === true)) {
               return [() => sinkTalkback(typeData, latestData), () => terminatedBySink ? undefined : sourceTalkback(type, data)]
             }
-            else if (type == typeEnd) {
+            else if (type === typeEnd) {
               terminatedBySink = true
               return () => sourceTalkback(type, data)
             }
@@ -658,21 +663,23 @@ const latest = source => {
     }
   }
 }
-const latestEvergreen = source => (type, data) => {
+const latest = latestGen(false)
+const latestRDI = latestGen(true)
+const latestEvergreenGen = replyDataImmediately => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback = data
     var sourceTalkback
     var received = false
-    var latestData
+    var latestData = undefined
     var terminatedBySink = false
     return () => source(typeStart, (type, data) => {
       if (type === typeStart) {
         sourceTalkback = data
         return () => sinkTalkback(typeStart, (type, data) => {
-          if (type === typeData && received == true) {
+          if (type === typeData && (replyDataImmediately === true || received === true)) {
             return [() => sinkTalkback(typeData, latestData), () => terminatedBySink ? undefined : sourceTalkback(type, data)]
           }
-          else if (type == typeEnd) {
+          else if (type === typeEnd) {
             terminatedBySink = true
             return () => sourceTalkback(type, data)
           }
@@ -690,6 +697,8 @@ const latestEvergreen = source => (type, data) => {
     })
   }
 }
+const latestEvergreen = latestEvergreenGen(false)
+const latestEvergreenRDI = latestEvergreenGen(true)
 const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback
@@ -857,9 +866,13 @@ const mExports = {
   listenStart: listenStart,
   pullStart,
   factoryToCallback: factoryToCallback,
+  factoryPullCallback, factoryPullCallback,
   toPromiselikeGen: toPromiselikeGen,
   toPromiselike: toPromiselike,
   toPromiselikePull: toPromiselikePull,
+  toPromiseGen: toPromiseGen,
+  toPromise: toPromise,
+  toPromisePull: toPromisePull,
   map: map,
   mapFromFactories: mapFromFactories,
   filter: filter,
@@ -875,8 +888,12 @@ const mExports = {
   splitSource: splitSource,
   splitSourceFixed: splitSourceFixed,
   multicast: multicast,
+  latestGen: latestGen,
   latest: latest,
+  latestRDI: latestRDI,
+  latestEvergreenGen: latestEvergreenGen,
   latestEvergreen: latestEvergreen,
+  latestEvergreenRDI: latestEvergreenRDI,
   evergreenSourceGen: evergreenSourceGen,
   evergreenSource: evergreenSource,
   evergreenSourceBuffered: evergreenSourceBuffered,

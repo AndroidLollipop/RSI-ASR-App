@@ -4,21 +4,21 @@ const callbags = require("./callbags/callbags")
 
 const asrStream = callbags.factoryFromCallback()
 
-const asrCallbag = callbags.latest(callbags.multicast(asrStream.callbag))
+const asrCallbag = callbags.latestRDI(callbags.multicast(asrStream.callbag))
 
 const asrCallback = asrStream.callback
 
 const mapRendererStream = callbags.factoryFromCallback()
 
-mapRendererStream.callbag = callbags.latest(callbags.multicast(mapRendererStream.callbag))
+mapRendererStream.callbag = callbags.latestRDI(callbags.multicast(mapRendererStream.callbag))
 
 const searchCellsStream = callbags.factoryFromCallback()
 
-searchCellsStream.callbag = callbags.latest(callbags.multicast(searchCellsStream.callbag))
+searchCellsStream.callbag = callbags.latestRDI(callbags.multicast(searchCellsStream.callbag))
 
 const storeDataStream = callbags.factoryFromCallback()
 
-storeDataStream.callbag = callbags.latest(callbags.multicast(storeDataStream.callbag))
+storeDataStream.callbag = callbags.latestRDI(callbags.multicast(storeDataStream.callbag))
 
 /*var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
@@ -264,7 +264,6 @@ var exports = module.exports = {
   dataInvalidated : true,
   Images: {},
   StateData: {"ServerURL": "http://192.168.1.31/speech/english/imda1.php", "SelectedShelf": null},
-  AsrEventListeners: [],
   MapEventListeners: [],
   RefEventListeners: []
 }

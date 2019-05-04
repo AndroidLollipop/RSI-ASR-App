@@ -20,7 +20,7 @@ import Svg,{
 
 var fetchData = require("../fetchData");
 
-var callbags = require("../callbags/callbags")
+const callbags = require("../callbags/callbags")
 
 export default class ResultsScreen extends React.Component {
   static navigationOptions = ({ navigation }) => ({
