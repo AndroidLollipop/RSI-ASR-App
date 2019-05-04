@@ -861,10 +861,10 @@ const mExports = {
   forEachGen: forEachGen,
   forEach: forEach,
   listen: listen,
-  pullOnce,
+  pullOnce: pullOnce,
   start: start,
   listenStart: listenStart,
-  pullStart,
+  pullStart: pullStart,
   factoryToCallback: factoryToCallback,
   factoryPullCallback, factoryPullCallback,
   toPromiselikeGen: toPromiselikeGen,
@@ -907,7 +907,7 @@ const mExports = {
   compose: compose,
   funcCompose: funcCompose,
   funcNCompose: funcNCompose,
-  funcComposeN: funcComposeN,
+  funcComposeN: funcComposeN
 }
 mExports.callbags = mExports // create a circular reference
 module.exports = mExports
