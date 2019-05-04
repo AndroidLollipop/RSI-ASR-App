@@ -73,6 +73,7 @@ export default class ResultsScreen extends React.Component {
   componentWillUnmount(){
     this.mounted = false
     this.searchCellsStream.terminate()
+    this.mapBaseStream.terminate()
     this.mapHighlightStream.terminate()
   }
 

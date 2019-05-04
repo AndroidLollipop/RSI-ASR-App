@@ -344,7 +344,7 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     if (this.state.nextScreen){
-      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'asrTextGetter': () => this.asrText, 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight, 'getRec': this.getRec.bind(this)})
+      this.navigateto('Result', {'name': 'Search Results', 'resultcells': cells, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'getRec': this.getRec.bind(this)})
     }
   }
 
@@ -604,7 +604,7 @@ export default class HomeScreen extends React.Component {
               <Button
                 title="Navigation Test"
                 onPress={() =>
-                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'cellsGetter': this.refreshResultCells.bind(this), 'mapGenerator': this.getMap.bind(this), 'highlightGetter': () => this.mapHighlight, 'pathHighlightGetter': () => this.pathHighlight, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'locHighlightGetter': () => this.locHighlight, 'getRec': this.getRec.bind(this)})
+                  navigate('Result', {'name': 'Whenever is a mantra I live for', 'resultcells': this.state.cells, 'mapCanvasOP': this.mapCanvasOP.bind(this), 'getRec': this.getRec.bind(this)})
                 }
               />
               <Button
