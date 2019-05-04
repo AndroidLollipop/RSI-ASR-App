@@ -66,7 +66,6 @@ export default class HomeScreen extends React.Component {
     this.rankingResults = null;
     this.startRecordingEnable = true;
     this.sstopRecordingEnable = false;
-    this.listenerIndex = null;
     this.mapRenderComplete = null;
     this.polygonMap = null;
     this.mapHighlight = null;
@@ -102,14 +101,11 @@ export default class HomeScreen extends React.Component {
 
   componentDidMount(){ //componentDidMount runs immediately after this component finishes rendering for the first time
     //the reason we (can, but) don't put this in componentWillMount is that only componentDidMount is guaranteed to be paired with componentWillUnmount
-    this.listenerIndex = fetchData.RefEventListeners.push(
-    async (stageCompletion, stageCompleter) => {
-      this.storeData = await fetchData.getStoreData()
+    this.storeDataStream = callbags.factoryToCallback(async data => {
+      this.storeData = data
       this.searchRanker = await this.getRanker()
       this.recommender = await this.getRecommender()
-      this.refreshSearchResults.bind(this)(stageCompleter)
-    })-1
-    this.storeDataStream = callbags.factoryToCallback(async data => {
+      this.refreshSearchResults.bind(this)()
     })
     this.storeDataStream.callbag(fetchData.storeDataStream.callbag)
     this.mounted = true
@@ -135,7 +131,6 @@ export default class HomeScreen extends React.Component {
   }
 
   componentWillUnmount(){
-    fetchData.RefEventListeners[this.listenerIndex] = undefined
     this.mounted = false
     this.asrStream.terminate()
     this.storeDataStream.terminate()
@@ -368,9 +363,8 @@ export default class HomeScreen extends React.Component {
     return this.state.cells
   }
 
-  async refreshSearchResults(stageCompleter){
+  async refreshSearchResults(){
     if (!this.rankingResults){
-      stageCompleter()
       return
     }
     this.rankingResults = (await this.searchRanker)(this.asrText)
@@ -379,7 +373,6 @@ export default class HomeScreen extends React.Component {
       cells: cells
     })
     fetchData.searchCellsStream.callback(cells)
-    stageCompleter()
   }
 
   async stopAudioRecording(){

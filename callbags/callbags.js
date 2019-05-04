@@ -117,6 +117,7 @@ const toPromiselikeGen = startPull => source => {
   var rejected = false
   var resolvedError
   var talkToError
+  var talkToEnd
   trampoline(source(typeStart, (type, data) => {
     if (type === typeStart) {
       if (terminatedByCallback) {
@@ -135,6 +136,9 @@ const toPromiselikeGen = startPull => source => {
       if (talkToCallback) {
         talkToCallback(data)
       }
+      if (talkToEnd) {
+        talkToEnd()
+      }
       return () => savedSourceTalkback(typeEnd)
     }
     else if (type === typeEnd) {
@@ -143,6 +147,9 @@ const toPromiselikeGen = startPull => source => {
       talkToSource = undefined
       if (talkToError) {
         talkToError(data)
+      }
+      if (talkToEnd) {
+        talkToEnd()
       }
     }
   }))
@@ -153,16 +160,29 @@ const toPromiselikeGen = startPull => source => {
         callback(resolvedData)
       }
     },
-    reject: error => {
+    catch: error => {
       talkToError = error
       if (rejected) {
         error(resolvedError)
+      }
+    },
+    finally: end => {
+      talkToEnd = end
+      if (received || rejected) {
+        end()
       }
     }
   }
 }
 const toPromiselike = toPromiselikeGen(false)
 const toPromiselikePull = toPromiselikeGen(true)
+const toPromise = source => new Promise(
+  (resolve, reject) => {
+    const promiselike = toPromiselike(source)
+    promiselike.then(resolve)
+    promiselike.catch(reject)
+  }
+)
 const map = (func, misFunc, endFunc, adsFunc) => source => (type, data) => {
   if (type === typeStart) {
     var sinkTalkback = data
