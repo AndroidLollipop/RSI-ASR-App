@@ -24,7 +24,7 @@ const storeDataStream = callbags.factoryFromCallback()
 
 storeDataStream.callbag = guardStart(storeDataStream.callbag)
 
-/*var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
+var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
   var resolveMyPromise
   const myPromise = new Promise(resolve => {
@@ -51,25 +51,17 @@ storeDataStream.callbag = guardStart(storeDataStream.callbag)
     try {
       var ime = await fetch(url, myInit)
       var res = await ime.json()
-      resolveMyPromise(res.decodeText.split("\n").join(""))
+      asrStream.callback(res.decodeText.split("\n").join(""))
     }
     catch(e){
       alert(e)
       alert("Server not detected. Returning default response")
-      resolveMyPromise("where is the bubble gum")
+      asrStream.callback("where is the bubble gum")
     }
+    resolveMyPromise()
     console.log(res)
   }
   return myPromise
-}*/
-var getAsrText = async (uri) => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      const response = "where is the bubble gum"
-      asrStream.callback(response)
-      resolve(response)
-    }, 2000)
-  })
 }
 var storeData = {
   "items": [
