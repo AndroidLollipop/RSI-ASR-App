@@ -20,6 +20,8 @@ import Svg,{
 
 var fetchData = require("../fetchData");
 
+var callbags = require("../callbags/callbags")
+
 export default class ResultsScreen extends React.Component {
   static navigationOptions = ({ navigation }) => ({
     title: `${navigation.state.params.name}`,
@@ -34,6 +36,7 @@ export default class ResultsScreen extends React.Component {
     this.state = {myMap: false, cells: false, myHighlight: false, myPathHighlight: false, myLocHighlight: false}
     this.listenerIndex = null;
     this.listenerIndey = null;
+    this.searchCellsStream = null;
     let {height, width} = Dimensions.get("window");
     this.height = height;
     this.width = width;
@@ -42,7 +45,10 @@ export default class ResultsScreen extends React.Component {
 
   async componentDidMount(){
     this.listenerIndex = fetchData.MapEventListeners.push(() => {let hil = this.props.navigation.state.params.highlightGetter(); let phi = this.props.navigation.state.params.pathHighlightGetter(); let loc = this.props.navigation.state.params.locHighlightGetter(); this.setState({myHighlight: hil, myPathHighlight: phi, myLocHighlight: loc})})-1
-    this.listenerIndey = fetchData.RefEventListeners.push(async (stageCompletion) => {let cells = await this.props.navigation.state.params.cellsGetter(stageCompletion); if(this.mounted) {this.setState({cells: cells})}})-1
+    this.searchCellsStream = callbags.factoryToCallback(cells => {
+      this.setState({cells: cells})
+    })
+    this.searchCellsStream.callbag(fetchData.searchCellsStream.callbag)
     let cells = this.props.navigation.state.params.resultcells
     let map = this.props.navigation.state.params.mapGenerator()
     let hil = this.props.navigation.state.params.highlightGetter()
@@ -67,6 +73,7 @@ export default class ResultsScreen extends React.Component {
     this.mounted = false
     fetchData.MapEventListeners[this.listenerIndex] = undefined
     fetchData.RefEventListeners[this.listenerIndey] = undefined
+    this.searchCellsStream.terminate()
   }
 
   render() {

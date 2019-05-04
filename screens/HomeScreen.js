@@ -79,7 +79,8 @@ export default class HomeScreen extends React.Component {
     this.location = [0.1, 0.1] //absolute. the reason we do this is to avoid waiting for storeData
     this.selectedItem = null;
     this.mounted = false;
-    this.stream = null;
+    this.asrStream = null;
+    this.outStream = null;
   }
   static navigationOptions = {
     title: "Home",
@@ -108,8 +109,11 @@ export default class HomeScreen extends React.Component {
       this.recommender = await this.getRecommender()
       this.refreshSearchResults.bind(this)(stageCompleter)
     })-1
+    this.storeDataStream = callbags.factoryToCallback(async data => {
+    })
+    this.storeDataStream.callbag(fetchData.storeDataStream.callbag)
     this.mounted = true
-    this.stream = callbags.factoryToCallback(async data => {
+    this.asrStream = callbags.factoryToCallback(async data => {
       this.asrText = data
       var [ran, storeData] = await Promise.all([this.searchRanker, this.storeData]);
       for (var i = 0; i < fetchData.AsrEventListeners.length; i++){ //updates accuracycheck screen
@@ -126,13 +130,15 @@ export default class HomeScreen extends React.Component {
       this.rankingResults = ran(data) //get search rankings
       this.displaySearchResults.bind(this)() //display search results
     })
-    this.stream.callbag(fetchData.asrCallbag)
+    this.asrStream.callbag(fetchData.asrCallbag)
+    this.outStream = fetchData.mapRendererStream
   }
 
   componentWillUnmount(){
     fetchData.RefEventListeners[this.listenerIndex] = undefined
     this.mounted = false
-    this.stream.terminate()
+    this.asrStream.terminate()
+    this.storeDataStream.terminate()
   }
 
   async startAudioRecording(){ //start animations and start audio recording
@@ -372,6 +378,7 @@ export default class HomeScreen extends React.Component {
     this.setState({
       cells: cells
     })
+    fetchData.searchCellsStream.callback(cells)
     stageCompleter()
   }
 

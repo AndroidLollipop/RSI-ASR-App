@@ -10,7 +10,15 @@ const asrCallback = asrStream.callback
 
 const mapRendererStream = callbags.factoryFromCallback()
 
+mapRendererStream.callbag = callbags.latest(callbags.multicast(mapRendererStream.callbag))
+
 const searchCellsStream = callbags.factoryFromCallback()
+
+searchCellsStream.callbag = callbags.latest(callbags.multicast(searchCellsStream.callbag))
+
+const storeDataStream = callbags.factoryFromCallback()
+
+storeDataStream.callbag = callbags.latest(callbags.multicast(storeDataStream.callbag))
 
 /*var getAsrText = async (uri) => { //this code directly mirrors the server request code from the asr engine test page
   //i converted the jquery requests to fetch requests because jquery doesn't play nice with react native
@@ -225,6 +233,7 @@ var getStoreData = (refresh) => {
 }
 var refresh = async () => {
   await getStoreData(true)
+  storeDataStream.callback(getStoreData())
   var stageCompleter
   var stageCompletion = new Promise((resolve) => {
     stageCompleter = resolve
@@ -272,3 +281,4 @@ exports.toggleInterval = toggleInterval;
 exports.asrCallbag = asrCallbag;
 exports.mapRendererStream = mapRendererStream;
 exports.searchCellsStream = searchCellsStream;
+exports.storeDataStream = storeDataStream;
