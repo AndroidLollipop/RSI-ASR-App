@@ -310,7 +310,6 @@ const lastN = immutableCount => source => (type, data) => {
         else {
           return () => sinkTalkback(typeEnd, innerData)
         }
-        
       }
       else {
         return () => sinkTalkback(type, innerData)
