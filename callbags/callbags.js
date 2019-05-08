@@ -699,7 +699,7 @@ const latestEvergreenGen = replyDataImmediately => source => (type, data) => {
 }
 const latestEvergreen = latestEvergreenGen(false)
 const latestEvergreenRDI = latestEvergreenGen(true)
-const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => {
+const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => { // buffering can lead to unexpected behaviour. beware. will provide a less temperamental buffering solution (two-way buffering) soon.
   if (type === typeStart) {
     var sinkTalkback
     var sourceTalkback
