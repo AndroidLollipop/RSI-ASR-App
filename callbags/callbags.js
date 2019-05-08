@@ -8,7 +8,8 @@ const typeNFE = 1337
 const typeIFE = 1338
 const typeMIS = 1339
 const cbtySuccess = 1340
-const cbtyFailure = 1341
+const cbtyQueued = 1341
+const cbtyFailure = 1342
 const trampoline = func => {
   // we cannot use recursion in the trampoline because we want to avoid call stack overflows (which is why we have a trampoline in the first place)
   var buffer = [func]
@@ -93,9 +94,7 @@ const factoryToCallback = (dataCallback, sourceTerminationCallback, startCallbac
         trampoline(talkToSource(typeData, data))
         return cbtySuccess
       }
-      else {
-        return cbtyFailure
-      }
+      return cbtyFailure
     },
     terminate: data => {
       terminatedByCallback = true
@@ -103,8 +102,9 @@ const factoryToCallback = (dataCallback, sourceTerminationCallback, startCallbac
         const savedSourceTalkback = talkToSource
         talkToSource = undefined
         trampoline(savedSourceTalkback(typeEnd, data))
+        return cbtySuccess
       }
-      return cbtySuccess
+      return cbtyQueued
     }
   }
 }
@@ -429,8 +429,9 @@ const factoryFromCallback = sinkTerminationCallback => {
         const savedSinkTalkback = talkToSink
         talkToSink = undefined
         trampoline(() => savedSinkTalkback(typeEnd, data))
+        return cbtySuccess
       }
-      return cbtySuccess
+      return cbtyQueued
     }
   }
 }
@@ -819,6 +820,53 @@ const nestedSource = (source) => pipe(
   range(1,0),
   feldFromFactory(() => () => source)
 )
+const multiListenFactory = () => {
+  var sourceTalkbacks = []
+  var sinkTalkback
+  var buffer = []
+  const source = (type, data) => {
+    if (type === typeStart) {
+      const talkToSources = (type, data) => {
+        if (type === typeEnd) {
+          buffer = undefined
+          return sourceTalkbacks.map((sourceTalkback, sourceTalkbackIndex) => () => sourceTalkbacks[sourceTalkbackIndex] === undefined ? undefined : sourceTalkback(typeEnd))
+        }
+      }
+      sinkTalkback = data
+      return buffer.length === 0 ? () => sinkTalkback(typeStart, talkToSources) : [() => sinkTalkback(typeStart, talkToSources), buffer]
+    }
+  }
+  const sinkGen = buffered => source => {
+    var mySourceIndex
+    trampoline(source(typeStart, (type, data) => {
+      if (type === typeStart) {
+        retObj.sinkGuarded = sinkGen(false)
+        mySourceIndex = sourceTalkbacks.push(data)-1
+      }
+      if (buffer === undefined) { // this is not a typo. we send end to newly subscribed sources immediately if we have been terminated by our sink.
+        return () => sourceTalkbacks[mySourceIndex](typeEnd)
+      }
+      else if (type === typeData) {
+        if (sinkTalkback === undefined) { // buffer is guaranteed to not be undefined here.
+          buffered ? buffer.push(() => buffer === undefined ? undefined : sinkTalkback(typeData,data)) : undefined
+        }
+        else {
+          return () => sinkTalkback(typeData, data)
+        }
+      }
+      else if (type === typeEnd) {
+        sourceTalkbacks[mySourceIndex] = undefined
+      }
+    }))
+  }
+  const retObj = {
+    source: source,
+    sink: sinkGen(true), // the default sink is buffered.
+    sinkUnbuffered: sinkGen(false), // for delayed subscriptions.
+    sinkGuarded: () => cbtyFailure // for user-controlled starts.
+  }
+  return retObj
+}
 const pipe = (...args) => {
   var res = args[0]
   for (var i = 1; i < args.length; i++) {
