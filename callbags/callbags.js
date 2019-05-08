@@ -903,6 +903,7 @@ const mExports = {
   typeIFE: typeIFE,
   typeMIS: typeMIS,
   cbtySuccess: cbtySuccess,
+  cbtyQueued: cbtyQueued,
   cbtyFailure: cbtyFailure,
   trampoline: trampoline, // yes, we export even the trampoline
   forEachGen: forEachGen,
@@ -951,6 +952,7 @@ const mExports = {
   streamCounter: streamCounter,
   nestedSource: nestedSource,
   pipe: pipe,
+  multiListenFactory: multiListenFactory,
   compose: compose,
   funcCompose: funcCompose,
   funcNCompose: funcNCompose,
