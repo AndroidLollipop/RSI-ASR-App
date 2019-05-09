@@ -10,6 +10,7 @@ const typeMIS = 1339
 const cbtySuccess = 1340
 const cbtyQueued = 1341
 const cbtyFailure = 1342
+const signalIgnore = Symbol("Ignore this value")
 const trampoline = func => {
   // we cannot use recursion in the trampoline because we want to avoid call stack overflows (which is why we have a trampoline in the first place)
   var buffer = [func]
@@ -233,6 +234,37 @@ const mapFromFactories = (...args) => source => (type, data) => {
       }
       else {
         return () => sinkTalkback(type, adsFunc ? adsFunc(type, innerData) : innerData)
+      }
+    })
+  }
+}
+const mapFilterAllChannelsFromFactory = (mapFilterFactory) => source => (type, data) => {
+  if (type === typeStart) {
+    var [dataChannelFunc, endChannelFunc, alternateChannelsFunc] = mapFilterFactory() // this allows dataChannelFunc, endChannelFunc, and alternateChannelsFunc to communicate through a shared scope.
+    var sinkTalkback = data
+    var sourceTalkback
+    return () => source(typeStart, (type, innerData) => {
+      if (type === typeStart) {
+        sourceTalkback = innerData
+        return () => sinkTalkback(typeStart, sourceTalkback)
+      }
+      else if (type === typeData) {
+        const mapFilterResult = dataChannelFunc(innerData)
+        if (mapFilterResult !== signalIgnore) {
+          return () => sinkTalkback(typeData, mapFilterResult)
+        }
+      }
+      else if (type === typeEnd) {
+        const mapFilterResult = endChannelFunc(innerData)
+        if (mapFilterResult !== signalIgnore) {
+          return () => sinkTalkback(typeEnd, mapFilterResult)
+        }
+      }
+      else {
+        const mapFilterResult = alternateChannelsFunc(type, innerData)
+        if (mapFilterResult !== signalIgnore) {
+          return () => sinkTalkback(type, mapFilterResult)
+        }
       }
     })
   }
@@ -699,7 +731,8 @@ const latestEvergreenGen = replyDataImmediately => source => (type, data) => {
 }
 const latestEvergreen = latestEvergreenGen(false)
 const latestEvergreenRDI = latestEvergreenGen(true)
-const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => { // buffering can lead to unexpected behaviour. beware. will provide a less temperamental buffering solution (two-way buffering) soon.
+// DEPRECATED! use evergreenBidirectional
+const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => { // use evergreenBidirectional for a less temperamental buffering solution.
   if (type === typeStart) {
     var sinkTalkback
     var sourceTalkback
@@ -724,7 +757,7 @@ const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => 
                   prevReq = () => sourceTalkback(type, data)
                 }
                 else if (adsBuffered) {
-                  buffer.push(() => sourceTalkback(type, data))
+                  buffer.push(() => sourceTalkback ? sourceTalkback(type, data) : undefined)
                 }
               }
               return () => savedSourceTalkback(type, data)
@@ -773,9 +806,91 @@ const evergreenSourceGen = (buffered, adsBuffered) => source => (type, data) => 
     return () => source(typeStart, sourceReceiver)
   }
 }
+// DEPRECATED! use evergreenBidirectional
 const evergreenSource = evergreenSourceGen(false)
 const evergreenSourceBuffered = evergreenSourceGen(true)
 const evergreenSourceADSBuffered = evergreenSourceGen(true, true) // camelCase dictates that we capitalize ADS. if a term begins with ADS then we must lowercase it.
+const evergreenBidirectional = source => (type, data) => { // only the data stream is buffered
+  if (type === typeStart) {
+    var sourceToSinkBuffer = []
+    var sinkToSourceBuffer = []
+    var sinkToSourceDroppedBuffer = []
+    var sourceTalkback
+    var sinkTalkback = data
+    var sinkStarted = false
+    var sourceToSinkBufferDrainerScheduled = false
+    var sinkToSourceBufferDrainerScheduled = false
+    const sourceToSinkBufferDrainer = () => {
+      if (sourceToSinkBuffer.length === 0 || sinkTalkback === undefined) {
+        sourceToSinkBufferDrainerScheduled = false
+        return
+      }
+      const data = sourceToSinkBuffer[0]
+      return () => [(sourceToSinkBuffer.shift(), sinkTalkback(typeData, data)), sourceToSinkBufferDrainer]
+    }
+    const sinkToSourceBufferDrainer = () => {
+      if (sinkToSourceBuffer.length === 0 || sourceTalkback === undefined) {
+        sinkToSourceBufferDrainerScheduled = false
+        return
+      }
+      const data = sinkToSourceBuffer[0]
+      return () => [(sinkToSourceDroppedBuffer.push(sinkToSourceBuffer.shift()), sourceTalkback(typeData, data)), sinkToSourceBufferDrainer]
+    }
+    const scheduleDrainers = () => {
+      var scheduled = []
+      if (sourceToSinkBufferDrainerScheduled === false) {
+        sourceToSinkBufferDrainerScheduled = true
+        scheduled.push(sourceToSinkBufferDrainer)
+      }
+      if (sinkToSourceBufferDrainerScheduled === false) {
+        sinkToSourceBufferDrainerScheduled = true
+        scheduled.push(sinkToSourceBufferDrainer)
+      }
+      return scheduled
+    }
+    const sourceReceiver = (type, data) => {
+      if (type === typeStart) {
+        sourceTalkback = data
+        if (sinkStarted === false) {
+          sinkStarted = true
+          return () => sinkTalkback(typeStart, sinkReceiver)
+        }
+        return scheduleDrainers
+      }
+      else if (type === typeData) {
+        sinkToSourceDroppedBuffer = []
+        sourceToSinkBuffer.push(data)
+        return scheduleDrainers
+      }
+      else if (type === typeEnd) {
+        if (sinkTalkback === undefined) {
+            return
+        }
+        sinkToSourceBuffer.unshift(...sinkToSourceDroppedBuffer)
+        sinkToSourceDroppedBuffer = []
+        sourceTalkback = undefined
+        return () => source(typeStart, sourceReceiver)
+      }
+      else {
+        // receiving an alternate stream message does not mean that the previous request went through.
+        return () => sinkTalkback ? sinkTalkback(type, data) : undefined
+      }
+    }
+    const sinkReceiver = (type, data) => {
+      if (type === typeData) {
+        sinkToSourceBuffer.push(data)
+        return scheduleDrainers
+      }
+      else if (type === typeEnd) {
+        sinkTalkback = undefined
+      }
+      else {
+        return () => sourceTalkback ? sourceTalkback(type, data) : undefined
+      }
+    }
+    return () => source(typeStart, sourceReceiver)
+  }
+} 
 const feldFromFactory = funcFactory => {
   // feld stands for "for each fold"
   const felder = () => {
@@ -905,6 +1020,7 @@ const mExports = {
   cbtySuccess: cbtySuccess,
   cbtyQueued: cbtyQueued,
   cbtyFailure: cbtyFailure,
+  signalIgnore: signalIgnore,
   trampoline: trampoline, // yes, we export even the trampoline
   forEachGen: forEachGen,
   forEach: forEach,
@@ -923,6 +1039,7 @@ const mExports = {
   toPromisePull: toPromisePull,
   map: map,
   mapFromFactories: mapFromFactories,
+  mapFilterAllChannelsFromFactory: mapFilterAllChannelsFromFactory,
   filter: filter,
   lastN: lastN,
   last: last,
@@ -946,6 +1063,7 @@ const mExports = {
   evergreenSource: evergreenSource,
   evergreenSourceBuffered: evergreenSourceBuffered,
   evergreenSourceADSBuffered: evergreenSourceADSBuffered,
+  evergreenBidirectional: evergreenBidirectional,
   feldFromFactory: feldFromFactory,
   tap: tap,
   fold: fold,
