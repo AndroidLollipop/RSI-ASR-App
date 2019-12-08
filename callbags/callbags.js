@@ -1030,7 +1030,7 @@ const mExports = {
   listenStart: listenStart,
   pullStart: pullStart,
   factoryToCallback: factoryToCallback,
-  factoryPullCallback, factoryPullCallback,
+  factoryPullCallback: factoryPullCallback,
   toPromiselikeGen: toPromiselikeGen,
   toPromiselike: toPromiselike,
   toPromiselikePull: toPromiselikePull,
